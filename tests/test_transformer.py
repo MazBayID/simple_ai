@@ -69,6 +69,9 @@ def test_transformer_training_cli_saves_chat_loadable_checkpoint(tmp_path, monke
     tokenizer = load_tokenizer(output / "tokenizer.json")
     assert isinstance(model, TinyTransformerLanguageModel)
     assert model.vocab_size == tokenizer.vocab_size
+    import json
+    report = json.loads((output / "training_report.json").read_text(encoding="utf-8"))
+    assert report["optimizer"] == "adam"
 
 
 def test_external_validation_corpus_is_reported_separately(tmp_path, monkeypatch):
