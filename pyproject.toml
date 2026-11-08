@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "simple-ai-from-scratch"
+version = "0.0.1"
+description = "Educational offline AI framework and tiny model experiments built from scratch"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "License pending; not yet for redistribution" }
+authors = [{ name = "Simple AI contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+simple-ai = "simple_ai.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["python"]
