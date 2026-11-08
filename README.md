@@ -92,7 +92,8 @@ Python-traced peak allocations (not total process RSS).
 - Safety, factuality, and instruction-following evaluation before calling it a usable assistant.
 
 See `docs/BPE_TOKENIZER.md`, `docs/TRANSFORMER.md`,
-`docs/LANGUAGE_MODEL.md`, and `docs/INDONESIAN_CHAT.md`.
+`docs/LANGUAGE_MODEL.md`, `docs/INDONESIAN_CHAT.md`, and
+`docs/RELEASE_CHECKLIST.md`.
 
 ## License
 
