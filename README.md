@@ -45,8 +45,10 @@ PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
 ```
 
 Use your own UTF-8 corpus with `--input`, or JSONL conversation pairs with
-`--conversations`. Only use data you have permission to train on; keep private
-corpora outside Git.
+`--conversations`. For a separate validation corpus, add
+`--validation-input /path/to/validation.txt`; the tokenizer is fitted only on
+training text. Keep an additional untouched test corpus for final comparisons.
+Only use data you have permission to train on; keep private corpora outside Git.
 
 ## Run the local chat harness
 
