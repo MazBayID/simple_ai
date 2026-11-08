@@ -60,3 +60,10 @@ def test_constants_do_not_receive_gradients():
 
     assert values.grad == [[4.0, 5.0]]
     assert constant.grad == [[0.0, 0.0]]
+
+
+
+def test_scalar_subtraction():
+    values = Tensor([[3, 5]])
+    (values - 2).sum().backward()
+    assert values.grad == [[1.0, 1.0]]
