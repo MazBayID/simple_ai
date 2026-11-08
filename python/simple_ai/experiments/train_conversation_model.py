@@ -149,7 +149,7 @@ def main() -> None:
         "source": source_description, "validation_source": validation_source,
         "training_characters": len(train_text), "validation_characters": len(validation_text),
         "tokenization_tokens_per_character": len(train_ids) / max(1, len(train_text)),
-        "characters": len(text),
+        "characters": len(train_text) + len(validation_text),
         "tokenizer": args.tokenizer, "architecture": args.architecture,
         "optimizer": optimizer_name, "learning_rate": learning_rate,
         "vocabulary_size": tokenizer.vocab_size,
