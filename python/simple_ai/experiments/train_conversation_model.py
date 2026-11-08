@@ -52,8 +52,8 @@ def main() -> None:
 
     if args.context_size < 1 or args.epochs < 1 or args.batch_size < 1:
         parser.error("context size, epochs, and batch size must be positive.")
-    if not 0.0 <= args.validation_fraction < 0.5:
-        parser.error("--validation-fraction must be in [0, 0.5).")
+    if not 0.0 <= args.validation_fraction <= 0.5:
+        parser.error("--validation-fraction must be in [0, 0.5].")
 
     validation_source = args.validation_input or "contiguous_holdout"
     if args.conversations:
