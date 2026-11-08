@@ -84,6 +84,6 @@ cmake --build build
 
 ## Important limitations
 
-The character tokenizer and next-token dataset only prepare data. They do not train a language model yet. The current Tensor engine also lacks embedding layers, softmax/cross-entropy, efficient batching, and a vocabulary projection layer. These will be developed and tested as separate milestones.
+The character tokenizer and next-token dataset only prepare data. They do not train a language model yet. The current Tensor engine now has a basic trainable embedding lookup, but still lacks softmax/cross-entropy, efficient batching, and a vocabulary projection layer. These will be developed and tested as separate milestones.
 
 Exact RAM/CPU targets are deferred until profiling. Do not interpret a successful regression experiment as proof that a future SLM will meet any resource target.
