@@ -87,3 +87,16 @@ cmake --build build
 The character tokenizer and next-token dataset only prepare data. They do not train a language model yet. The current engine has a trainable embedding lookup and stable cross-entropy loss, but still lacks a vocabulary projection layer and efficient batching. These will be developed and tested as separate milestones.
 
 Exact RAM/CPU targets are deferred until profiling. Do not interpret a successful regression experiment as proof that a future SLM will meet any resource target.
+
+
+## Train the experimental language model
+
+After pulling the latest changes, run:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_language_model --input sample.txt --context-size 8 --epochs 30
+```
+
+The model and tokenizer checkpoints are written to
+`artifacts/language_model/`. The generated text is only a smoke test on a
+very small local corpus; it should not be treated as meaningful conversation.

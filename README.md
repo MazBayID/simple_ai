@@ -23,7 +23,7 @@ The initial stages focus on tiny educational models, efficient data pipelines, a
 
 ## Current status
 
-This repository is in its **early neural-engine and language-data research stage**. It has a small neural training engine, a deterministic character tokenizer, and a next-token dataset preparation pipeline. No trained language model or conversational inference engine is available yet.
+This repository is in its **early neural-engine and language-data research stage**. It has a small neural training engine, a deterministic character tokenizer, and a next-token dataset preparation pipeline. A first experimental fixed-context character language model and generation loop are now available; it is not yet a capable conversational assistant.
 
 ## Planned structure
 
@@ -65,12 +65,13 @@ For Android/Termux setup and test commands, see [README_TERMUX.md](README_TERMUX
 - Prepare local text as character token IDs and fixed-context next-token examples.
 - Map token IDs to trainable, position-aware embedding features with gradient accumulation.
 - Calculate numerically stable next-token cross-entropy directly from logits and backpropagate classification gradients.
+- Train and sample a tiny fixed-context character-level MLP language model.
 
 ## Current milestones
 
 **Neural training engine / experimental.** The regression experiment validates parameter learning on the simple target y = 2x; it is not language-model training.
 
-**Tokenizer and dataset pipeline / experimental.** The character tokenizer and next-token dataset establish the text data path. A complete language-model architecture, vocabulary projection, inference loop, and quality evaluation are still future milestones. Embeddings and cross-entropy are isolated building blocks, not a complete model.
+**Tokenizer and dataset pipeline / experimental.** The character tokenizer and next-token dataset establish the text data path. **Tiny language model / experimental.** A basic embedding → Linear → ReLU → vocabulary projection model can train on next-token examples and generate characters. It is not a Transformer and has not demonstrated useful conversation or generalization.
 
 See [docs/TOKENIZER_DATASET.md](docs/TOKENIZER_DATASET.md), [docs/TENSOR_ENGINE.md](docs/TENSOR_ENGINE.md), and [docs/TRAINING_ENGINE.md](docs/TRAINING_ENGINE.md).
 
