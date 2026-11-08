@@ -1,0 +1,47 @@
+name: Simple AI CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  foundation:
+    name: Repository foundation checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify project documentation
+        run: |
+          test -s README.md
+          grep -q "1.2 GB RAM" README.md
+          grep -q "training as well as inference" README.md
+
+      - name: Check Python syntax (when Python sources exist)
+        shell: bash
+        run: |
+          if find python -type f -name '*.py' -print -quit 2>/dev/null | grep -q .; then
+            python -m compileall -q python
+          else
+            echo "No Python source files yet; skipping."
+          fi
+
+      - name: Check C++ compilation (when C++ sources exist)
+        shell: bash
+        run: |
+          if find cpp -type f \( -name '*.cpp' -o -name '*.cc' \) -print -quit 2>/dev/null | grep -q .; then
+            mapfile -t sources < <(find cpp -type f \( -name '*.cpp' -o -name '*.cc' \))
+            g++ -std=c++20 -Wall -Wextra -Wpedantic -fsyntax-only "${sources[@]}"
+          else
+            echo "No C++ source files yet; skipping."
+          fi
+
+      - name: Report current stage
+        run: echo "Foundation checks complete. No model or binary is released at this stage."
