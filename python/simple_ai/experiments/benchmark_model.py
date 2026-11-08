@@ -7,6 +7,7 @@ import tracemalloc
 from pathlib import Path
 
 from ..language_model import load_language_model
+from ..core import backend_name
 from ..tokenizer import load_tokenizer
 
 
@@ -49,6 +50,7 @@ def main() -> None:
 
     rate = len(generated) / generation_seconds if generation_seconds > 0 else 0.0
     print(f"architecture: {model.__class__.__name__}")
+    print(f"compute_backend: {backend_name()}")
     print(f"parameters: {model.parameter_count()}")
     print(f"vocabulary_size: {tokenizer.vocab_size}")
     print(f"context_size: {model.context_size}")
