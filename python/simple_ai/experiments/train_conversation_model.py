@@ -35,6 +35,7 @@ def main() -> None:
     source.add_argument("--input", default="data/indonesian_seed.txt")
     source.add_argument("--conversations")
     parser.add_argument("--validation-input", help="Optional independent UTF-8 validation corpus.")
+    parser.add_argument("--test-input", help="Optional untouched UTF-8 test corpus, evaluated after training.")
     parser.add_argument("--tokenizer", choices=("bpe", "char"), default="bpe")
     parser.add_argument("--architecture", choices=("mlp", "transformer"), default="mlp")
     parser.add_argument("--vocab-size", type=int, default=128)
@@ -93,6 +94,9 @@ def main() -> None:
         validation_source = "none"
     if args.validation_input and not validation_text.strip():
         raise SystemExit("Validation corpus is empty or whitespace-only.")
+    test_text = Path(args.test_input).read_text(encoding="utf-8") if args.test_input else ""
+    if args.test_input and not test_text.strip():
+        raise SystemExit("Test corpus is empty or whitespace-only.")
     tokenization_started = time.perf_counter()
     if args.tokenizer == "bpe":
         tokenizer = BPETokenizer.train(train_text, vocab_size=args.vocab_size)
@@ -106,12 +110,14 @@ def main() -> None:
     else:
         validation_body = tokenizer.encode(validation_text, add_bos=False, add_eos=True)
         validation_ids = train_ids[-args.context_size:] + validation_body
+    test_ids = tokenizer.encode(test_text, add_bos=True, add_eos=True) if args.test_input else []
     if len(train_ids) <= args.context_size:
         raise SystemExit("Training corpus is too short for the selected context size.")
     train_data = NextTokenDataset(train_ids, context_size=args.context_size)
     validation_enabled = bool(args.validation_input) or args.validation_fraction > 0
     validation_data = (NextTokenDataset(validation_ids, context_size=args.context_size)
                        if validation_enabled and validation_text else None)
+    test_data = NextTokenDataset(test_ids, context_size=args.context_size) if test_ids else None
 
     if args.architecture == "transformer":
         model = TinyTransformerLanguageModel(
@@ -142,6 +148,7 @@ def main() -> None:
     )
     training_seconds = time.perf_counter() - training_started
     after_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
+    final_test_loss = evaluate(model, test_data, args.batch_size) if test_data else None
 
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -155,6 +162,7 @@ def main() -> None:
     report = {
         "source": source_description, "validation_source": validation_source,
         "training_characters": len(train_text), "validation_characters": len(validation_text),
+        "test_characters": len(test_text),
         "tokenization_tokens_per_character": len(train_ids) / max(1, len(train_text)),
         "characters": len(train_text) + len(validation_text),
         "tokenizer": args.tokenizer, "architecture": args.architecture,
@@ -163,8 +171,10 @@ def main() -> None:
         "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
         "context_size": args.context_size, "training_tokens": len(train_ids),
         "validation_tokens": len(validation_ids) if validation_data else 0,
+        "test_tokens": len(test_ids),
         "training_examples": len(train_data),
         "validation_examples": len(validation_data) if validation_data else 0,
+        "test_examples": len(test_data) if test_data else 0,
         "epochs": args.epochs, "tokenization_seconds": tokenization_seconds,
         "training_seconds": training_seconds,
         "training_examples_per_second": (
@@ -172,9 +182,10 @@ def main() -> None:
         ),
         "initial_training_loss": history[0],
         "final_training_loss": history[-1], "initial_validation_loss": before_validation,
-        "final_validation_loss": after_validation,
+        "final_validation_loss": after_validation, "final_test_loss": final_test_loss,
         "initial_validation_perplexity": perplexity(before_validation),
         "final_validation_perplexity": perplexity(after_validation),
+        "final_test_perplexity": perplexity(final_test_loss),
         "parameters": model.parameter_count(),
         "warning": "Lower loss is not proof of semantic understanding or useful chat ability.",
     }
