@@ -67,3 +67,14 @@ def test_scalar_subtraction():
     values = Tensor([[3, 5]])
     (values - 2).sum().backward()
     assert values.grad == [[1.0, 1.0]]
+
+
+
+def test_zero_grad_resets_accumulated_gradient():
+    values = Tensor([[2, 3]])
+    values.sum().backward()
+    values.sum().backward()
+    assert values.grad == [[2.0, 2.0]]
+
+    values.zero_grad()
+    assert values.grad == [[0.0, 0.0]]
