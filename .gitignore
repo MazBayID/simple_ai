@@ -8,3 +8,5 @@ venv/
 
 /artifacts/
 /sample.txt
+/data/private/
+/data/local/
