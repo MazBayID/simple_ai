@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 
 from ..conversation import load_conversations, render_conversations
@@ -125,8 +126,15 @@ def main() -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     model.save(output_dir / "model.json")
     tokenizer.save(output_dir / "tokenizer.json")
+    def perplexity(loss: float | None) -> float | None:
+        if loss is None:
+            return None
+        return math.exp(min(loss, 700.0))
+
     report = {
         "source": source_description, "validation_source": args.validation_input or "contiguous_holdout",
+        "training_characters": len(train_text), "validation_characters": len(validation_text),
+        "tokenization_tokens_per_character": len(train_ids) / max(1, len(train_text)),
         "characters": len(text),
         "tokenizer": args.tokenizer, "architecture": args.architecture,
         "optimizer": optimizer_name, "learning_rate": learning_rate,
@@ -138,7 +146,10 @@ def main() -> None:
         "validation_examples": len(validation_data) if validation_data else 0,
         "epochs": args.epochs, "initial_training_loss": history[0],
         "final_training_loss": history[-1], "initial_validation_loss": before_validation,
-        "final_validation_loss": after_validation, "parameters": model.parameter_count(),
+        "final_validation_loss": after_validation,
+        "initial_validation_perplexity": perplexity(before_validation),
+        "final_validation_perplexity": perplexity(after_validation),
+        "parameters": model.parameter_count(),
         "warning": "Lower loss is not proof of semantic understanding or useful chat ability.",
     }
     (output_dir / "training_report.json").write_text(
