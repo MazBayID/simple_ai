@@ -319,7 +319,7 @@ class Tensor:
         probabilities: Matrix = []
         for row in self.data:
             maximum = max(row)
-            exponentials = [__import__("math").exp(value - maximum) for value in row]
+            exponentials = [math.exp(value - maximum) for value in row]
             total = sum(exponentials)
             probabilities.append([value / total for value in exponentials])
         result = Tensor(probabilities, requires_grad=self.requires_grad, _parents=(self,))
