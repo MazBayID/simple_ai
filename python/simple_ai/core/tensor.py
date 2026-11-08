@@ -98,7 +98,9 @@ class Tensor:
         return self * -1.0
 
     def __sub__(self, other: "Tensor | float | int") -> "Tensor":
-        return self + (-self._coerce(other))
+        if isinstance(other, (int, float)):
+            return self + (-float(other))
+        return self + (-other)
 
     def __rsub__(self, other: "Tensor | float | int") -> "Tensor":
         return (-self) + other
