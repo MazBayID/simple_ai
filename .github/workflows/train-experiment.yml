@@ -4,13 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       epochs:
-        description: "Number of training epochs"
+        description: "Number of regression training epochs"
         required: true
         default: "120"
         type: string
   push:
     paths:
       - "python/simple_ai/**"
+      - "data/**"
       - "tests/**"
       - ".github/workflows/train-experiment.yml"
     branches: [main]
@@ -28,16 +29,38 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run training experiment
+      - name: Run regression experiment
         env:
           PYTHONPATH: python
           EPOCHS: ${{ inputs.epochs || '120' }}
         run: |
           python -m simple_ai.experiments.train_regression --epochs "$EPOCHS"
-      - name: Upload trained checkpoint
+      - name: Upload regression checkpoint
         uses: actions/upload-artifact@v4
         with:
           name: simple-ai-regression-checkpoint
           path: artifacts/regression_checkpoint.json
+          if-no-files-found: error
+          retention-days: 14
+
+  train-indonesian-baseline:
+    name: Train Indonesian language baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Train Indonesian seed corpus
+        env:
+          PYTHONPATH: python
+        run: |
+          python -m simple_ai.experiments.train_conversation_model --epochs 5
+      - name: Upload model and evaluation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: simple-ai-indonesian-experiment
+          path: artifacts/indonesian_model/
           if-no-files-found: error
           retention-days: 14

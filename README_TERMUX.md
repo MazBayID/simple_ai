@@ -1,6 +1,6 @@
 # Test Simple AI on Termux (Android)
 
-Simple AI is an early offline-AI research project. The neural training engine and text data pipeline are educational prototypes; this repository does not yet provide a conversational assistant or capable SLM.
+Simple AI is an offline AI research project built from scratch. The current language model is a small character-level MLP experiment, not a capable assistant.
 
 ## 1. Install tools
 
@@ -11,7 +11,7 @@ pkg install python git clang cmake
 python -m pip install pytest
 ```
 
-## 2. Clone or update the repository
+## 2. Clone or update
 
 ```bash
 git clone https://github.com/MazBayID/simple_ai.git
@@ -25,55 +25,79 @@ cd ~/simple_ai
 git pull origin main
 ```
 
-## 3. Run the test suite
+## 3. Run all tests
 
 ```bash
 PYTHONPATH=python python -m pytest -q
 ```
 
-## 4. Run the original Python demo
+## 4. Run the original toy demo and regression smoke test
 
 ```bash
 PYTHONPATH=python python -m simple_ai.cli demo
-```
-
-The generated text may be repetitive or nonsensical. The original model learns character transition counts, not meaning.
-
-## 5. Run the neural training experiment
-
-```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_regression
 ```
 
-The experiment learns the simple relationship y = 2x and writes a checkpoint to `artifacts/regression_checkpoint.json`. This validates the training engine, not a language model.
+These validate the early model and neural training engine, not Indonesian language ability.
 
-## 6. Prepare your own text corpus
+## 5. Train the Indonesian baseline
 
-Create or place a UTF-8 text file in the repository root. For example:
+The repository includes a small, original Indonesian seed corpus so the entire pipeline can run immediately:
 
 ```bash
-nano sample.txt
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
 ```
 
-Then prepare it:
+Default settings use context size 32 and 20 epochs. The run prints training and validation loss and writes:
+
+- `artifacts/indonesian_model/model.json`
+- `artifacts/indonesian_model/tokenizer.json`
+- `artifacts/indonesian_model/training_report.json`
+
+You can train directly from your own UTF-8 text file:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --input sample.txt --context-size 32 --epochs 20
+```
+
+Or use JSONL conversation pairs. Each line must be a JSON object with non-empty `user` and `assistant` strings:
+
+```json
+{"user":"Apa itu Python?","assistant":"Python adalah bahasa pemrograman."}
+{"user":"Apa fungsi variabel?","assistant":"Variabel menyimpan nilai."}
+```
+
+Example command:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --conversations data/conversations.example.jsonl --context-size 48 --epochs 80
+```
+
+## 6. Try the experimental terminal chat
+
+After training successfully:
+
+```bash
+PYTHONPATH=python python -m simple_ai.chat
+```
+
+Type `/exit` to quit. Optional settings:
+
+```bash
+PYTHONPATH=python python -m simple_ai.chat --max-new-tokens 120 --temperature 0.7 --top-k 8
+```
+
+The chat interface loads the local checkpoint; it does not train during chatting. The model may produce nonsense, repeat phrases, or fail to answer. A small seed corpus is only an end-to-end smoke test. Use a much larger, legally obtained Indonesian corpus and diverse conversation examples before judging language ability.
+
+## 7. Prepare a separate text pipeline
 
 ```bash
 PYTHONPATH=python python -m simple_ai.pipeline --input sample.txt --context-size 16
 ```
 
-The pipeline writes these files to `artifacts/text_pipeline/`:
+This creates files in `artifacts/text_pipeline/` without modifying the source file.
 
-- `tokenizer.json`
-- `token_ids.json`
-- `dataset.json`
-
-The source `sample.txt` is read-only from the pipeline's perspective; it is not modified. The first tokenizer is character-level, not BPE or a word tokenizer. If the corpus is too short for the chosen context size, rerun with a smaller value such as 4 or 8.
-
-Local `sample.txt` and `artifacts/` are ignored by Git by default. Do not commit private or unlicensed training text accidentally.
-
-See [docs/TOKENIZER_DATASET.md](docs/TOKENIZER_DATASET.md) for design details and limitations.
-
-## 7. Build the C++ demo
+## 8. Build the C++ prototype
 
 ```bash
 cd cpp
@@ -84,19 +108,10 @@ cmake --build build
 
 ## Important limitations
 
-The character tokenizer and next-token dataset only prepare data. They do not train a language model yet. The current engine has a trainable embedding lookup and stable cross-entropy loss, but still lacks a vocabulary projection layer and efficient batching. These will be developed and tested as separate milestones.
-
-Exact RAM/CPU targets are deferred until profiling. Do not interpret a successful regression experiment as proof that a future SLM will meet any resource target.
-
-
-## Train the experimental language model
-
-After pulling the latest changes, run:
-
-```bash
-PYTHONPATH=python python -m simple_ai.experiments.train_language_model --input sample.txt --context-size 8 --epochs 30
-```
-
-The model and tokenizer checkpoints are written to
-`artifacts/language_model/`. The generated text is only a smoke test on a
-very small local corpus; it should not be treated as meaningful conversation.
+- The tokenizer works per Unicode character, not word or subword.
+- The model is a fixed-context MLP, not a Transformer.
+- The chat loop is an experimental generation interface, not proof of comprehension.
+- Characters absent from training vocabulary map to `<unk>`.
+- Validation loss is a rough diagnostic, not a measure of factual accuracy.
+- Do not train on private or unlicensed text. Local `artifacts/` and `sample.txt` are ignored by Git.
+- RAM/CPU limits remain deferred until we benchmark on the target Android device.

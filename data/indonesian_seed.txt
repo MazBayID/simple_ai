@@ -1,0 +1,55 @@
+Halo! Selamat datang di proyek Simple AI.
+Saya sedang belajar mengenali pola bahasa Indonesia dari contoh teks.
+Bahasa Indonesia digunakan untuk menyampaikan informasi, bertanya, menjawab, dan bercerita.
+Kalimat terdiri dari kata-kata yang disusun agar memiliki maksud.
+Tanda titik biasanya mengakhiri kalimat berita.
+Tanda tanya digunakan ketika seseorang mengajukan pertanyaan.
+Tanda koma dapat memisahkan bagian kalimat.
+Huruf kapital digunakan pada awal kalimat dan nama orang atau tempat.
+
+Komputer menjalankan instruksi yang diberikan oleh program.
+Program adalah kumpulan instruksi yang disusun untuk menyelesaikan tugas.
+Python adalah bahasa pemrograman yang memiliki sintaks relatif mudah dibaca.
+Variabel digunakan untuk menyimpan nilai.
+Fungsi mengelompokkan instruksi agar dapat digunakan kembali.
+Perulangan menjalankan instruksi berkali-kali.
+Kondisi membantu program memilih tindakan berdasarkan suatu keadaan.
+Data dapat berupa teks, angka, atau nilai benar dan salah.
+Kecerdasan buatan adalah bidang yang mempelajari sistem yang melakukan tugas yang biasanya membutuhkan kemampuan manusia.
+Model bahasa mempelajari pola dari urutan teks.
+Model prediksi karakter memperkirakan karakter berikutnya berdasarkan beberapa karakter sebelumnya.
+Model kecil dapat menghafal contoh tanpa benar-benar memahami maknanya.
+Karena itu, hasil model perlu diuji menggunakan contoh yang belum pernah dilihat.
+
+Contoh percakapan:
+Pengguna: Halo, apa kabar?
+Asisten: Halo! Saya sedang belajar. Terima kasih sudah bertanya.
+Pengguna: Siapa namamu?
+Asisten: Nama saya Simple AI, sebuah proyek kecerdasan buatan lokal.
+Pengguna: Apa itu Python?
+Asisten: Python adalah bahasa pemrograman yang digunakan untuk membuat berbagai aplikasi.
+Pengguna: Apa fungsi variabel?
+Asisten: Variabel menyimpan nilai yang dapat digunakan oleh program.
+Pengguna: Apa itu fungsi?
+Asisten: Fungsi adalah bagian program yang dapat dipanggil untuk menjalankan tugas tertentu.
+Pengguna: Apa itu data?
+Asisten: Data adalah informasi yang dapat disimpan dan diolah oleh komputer.
+Pengguna: Apakah kamu selalu benar?
+Asisten: Tidak. Jawaban saya bisa keliru dan perlu diperiksa.
+Pengguna: Bisakah kamu bekerja tanpa internet?
+Asisten: Model lokal dapat dijalankan tanpa internet setelah semua berkas tersedia di perangkat.
+Pengguna: Bagaimana cara belajar pemrograman?
+Asisten: Mulailah dari konsep dasar, tulis kode, jalankan, amati hasilnya, lalu perbaiki kesalahan.
+
+Bahasa Indonesia memiliki banyak variasi kata dan susunan kalimat.
+Satu pertanyaan dapat memiliki beberapa jawaban yang benar.
+Konteks membantu menentukan arti sebuah kata.
+Percakapan biasanya memiliki giliran berbicara.
+Pengguna menyampaikan pesan, kemudian asisten memberikan tanggapan.
+Riwayat percakapan dapat membantu menjaga topik pembicaraan.
+Namun, model sederhana dengan konteks pendek hanya melihat sebagian kecil teks sebelumnya.
+Data pelatihan yang beragam dan berkualitas sangat penting.
+Data harus diperoleh secara sah dan tidak boleh berisi informasi pribadi tanpa izin.
+Pengujian harus memisahkan data latihan dan data evaluasi.
+Jika model hanya menghafal data latihan, hasilnya belum tentu berguna pada pertanyaan baru.
+Tujuan eksperimen ini adalah memahami cara kerja model dari dasar secara bertahap.
