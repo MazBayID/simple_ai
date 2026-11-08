@@ -72,6 +72,16 @@ The Transformer is intentionally small and implemented using Python lists.
 It has no layer normalization, dropout, KV cache, or optimized matrix kernels.
 Training may be slow on Android. Start with small contexts and batches.
 
+## Benchmark inference
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
+  --generation-tokens 32 --prompt "Halo, apa kabar?"
+```
+
+The report includes load time, tokens per second, checkpoint size, and
+Python-traced peak allocations (not total process RSS).
+
 ## Research milestones still required
 
 - A substantially larger, diverse, legally obtained Indonesian corpus.
