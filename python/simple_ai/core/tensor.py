@@ -70,7 +70,13 @@ class Tensor:
         return Tensor(value, requires_grad=False)
 
     def __add__(self, other: "Tensor | float | int") -> "Tensor":
-        other = self._coerce(other)
+        if isinstance(other, (int, float)):
+            other = Tensor(
+                [[float(other) for _ in range(self.shape[1])] for _ in range(self.shape[0])],
+                requires_grad=False,
+            )
+        else:
+            other = self._coerce(other)
         if self.shape != other.shape:
             raise ValueError(f"Addition requires equal shapes: {self.shape} and {other.shape}.")
         result = Tensor(
@@ -95,10 +101,16 @@ class Tensor:
         return self + (-self._coerce(other))
 
     def __rsub__(self, other: "Tensor | float | int") -> "Tensor":
-        return self._coerce(other) - self
+        return (-self) + other
 
     def __mul__(self, other: "Tensor | float | int") -> "Tensor":
-        other = self._coerce(other)
+        if isinstance(other, (int, float)):
+            other = Tensor(
+                [[float(other) for _ in range(self.shape[1])] for _ in range(self.shape[0])],
+                requires_grad=False,
+            )
+        else:
+            other = self._coerce(other)
         if self.shape != other.shape:
             raise ValueError(
                 f"Element-wise multiplication requires equal shapes: {self.shape} and {other.shape}."
