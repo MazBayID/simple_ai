@@ -117,7 +117,30 @@ PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
 
 The memory metric is Python allocations, not total Android process RAM.
 
-## 11. Build the C++ prototype
+## 11. Evaluate generated text
+
+After training, run the same fixed prompts against a checkpoint. The report
+records the architecture, active compute backend, generation speed, token
+diversity, and generated samples. These are diagnostics, not automatic
+semantic-quality scores; read the samples and judge relevance, fluency,
+factuality, and repetition yourself.
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.evaluate_generation \
+  --model artifacts/indonesian_wikipedia_baseline/model.json \
+  --tokenizer artifacts/indonesian_wikipedia_baseline/tokenizer.json \
+  --max-new-tokens 80 \
+  --output artifacts/evaluation/indonesian_generation.json
+```
+
+You can provide your own prompts by repeating `--prompt`, or pass a UTF-8
+file with one prompt per line using `--prompts-file`.
+
+Training reports and inference benchmarks now include `compute_backend`
+(`numpy` or `python`) so results can be compared without guessing which
+matrix multiplication path was active.
+
+## 12. Build the C++ prototype
 
 ```bash
 cd cpp
