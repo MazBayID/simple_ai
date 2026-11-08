@@ -81,7 +81,7 @@ Only use data you have permission to train on. Keep private corpora outside Git.
 ```bash
 cd cpp
 cmake -S . -B build
-cmake --build cpp/build
+cmake --build build
 ./build/simple_ai_native_demo
 ```
 
