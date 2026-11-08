@@ -61,18 +61,29 @@ def main() -> None:
     if not text.strip():
         raise SystemExit("Training corpus is empty or whitespace-only.")
 
-    split_at = int(len(text) * (1.0 - args.validation_fraction))
-    split_at = max(1, min(split_at, len(text)))
-    train_text = text[:split_at]
-    validation_text = text[split_at:]
+    if args.validation_input:
+        train_text = text
+        validation_text = Path(args.validation_input).read_text(encoding="utf-8")
+        if not validation_text.strip():
+            raise SystemExit("Validation corpus is empty or whitespace-only.")
+        validation_ids_are_independent = True
+    else:
+        split_at = int(len(text) * (1.0 - args.validation_fraction))
+        split_at = max(1, min(split_at, len(text)))
+        train_text = text[:split_at]
+        validation_text = text[split_at:]
+        validation_ids_are_independent = False
     if args.tokenizer == "bpe":
         tokenizer = BPETokenizer.train(train_text, vocab_size=args.vocab_size)
     else:
         tokenizer = CharTokenizer.from_text(train_text)
 
     train_ids = tokenizer.encode(train_text, add_bos=True, add_eos=False)
-    validation_body = tokenizer.encode(validation_text, add_bos=False, add_eos=True)
-    validation_ids = train_ids[-args.context_size:] + validation_body
+    if validation_ids_are_independent:
+        validation_ids = tokenizer.encode(validation_text, add_bos=True, add_eos=True)
+    else:
+        validation_body = tokenizer.encode(validation_text, add_bos=False, add_eos=True)
+        validation_ids = train_ids[-args.context_size:] + validation_body
     if len(train_ids) <= args.context_size:
         raise SystemExit("Training corpus is too short for the selected context size.")
     train_data = NextTokenDataset(train_ids, context_size=args.context_size)
@@ -102,7 +113,8 @@ def main() -> None:
     model.save(output_dir / "model.json")
     tokenizer.save(output_dir / "tokenizer.json")
     report = {
-        "source": source_description, "characters": len(text),
+        "source": source_description, "validation_source": args.validation_input or "contiguous_holdout",
+        "characters": len(text),
         "tokenizer": args.tokenizer, "architecture": args.architecture,
         "vocabulary_size": tokenizer.vocab_size,
         "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
