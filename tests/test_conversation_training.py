@@ -33,8 +33,8 @@ def test_jsonl_validation_splits_whole_records_and_keeps_vocab_train_only(tmp_pa
 
     conversations = tmp_path / "pairs.jsonl"
     conversations.write_text(
-        '{"user":"Halo","assistant":"Hai"}\\n'
-        '{"user":"zebra","assistant":"zebra"}\\n',
+        '{"user":"Halo","assistant":"Hai"}\n'
+        '{"user":"zebra","assistant":"zebra"}\n',
         encoding="utf-8",
     )
     output = tmp_path / "record-split"
