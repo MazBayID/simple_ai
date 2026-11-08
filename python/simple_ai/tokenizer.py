@@ -157,7 +157,16 @@ class BPETokenizer:
             best_count = max(counts.values())
             if best_count < min_frequency:
                 break
-            best_pair = min(pair for pair, count in counts.items() if count == best_count)
+            existing_tokens = set(characters)
+            for left, right in merges:
+                existing_tokens.add(left + right)
+            candidates = [
+                pair for pair, count in counts.items()
+                if count == best_count and pair[0] + pair[1] not in existing_tokens
+            ]
+            if not candidates:
+                break
+            best_pair = min(candidates)
             left, right = best_pair
             merged = left + right
             output: list[str] = []
