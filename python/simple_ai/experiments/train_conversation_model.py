@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import time
 from pathlib import Path
 
 from ..conversation import load_conversations, render_conversations
@@ -90,12 +91,14 @@ def main() -> None:
         raise SystemExit("Training corpus is empty or whitespace-only.")
     if args.validation_input and not validation_text.strip():
         raise SystemExit("Validation corpus is empty or whitespace-only.")
+    tokenization_started = time.perf_counter()
     if args.tokenizer == "bpe":
         tokenizer = BPETokenizer.train(train_text, vocab_size=args.vocab_size)
     else:
         tokenizer = CharTokenizer.from_text(train_text)
 
     train_ids = tokenizer.encode(train_text, add_bos=True, add_eos=False)
+    tokenization_seconds = time.perf_counter() - tokenization_started
     if validation_ids_are_independent:
         validation_ids = tokenizer.encode(validation_text, add_bos=True, add_eos=True)
     else:
@@ -130,10 +133,12 @@ def main() -> None:
         if optimizer_name == "adam"
         else SGD(model.parameters(), learning_rate=learning_rate)
     )
+    training_started = time.perf_counter()
     history = train_language_model(
         model, train_data, optimizer, epochs=args.epochs,
         batch_size=args.batch_size, seed=args.seed,
     )
+    training_seconds = time.perf_counter() - training_started
     after_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
 
     output_dir = Path(args.output_dir)
@@ -158,7 +163,12 @@ def main() -> None:
         "validation_tokens": len(validation_ids) if validation_data else 0,
         "training_examples": len(train_data),
         "validation_examples": len(validation_data) if validation_data else 0,
-        "epochs": args.epochs, "initial_training_loss": history[0],
+        "epochs": args.epochs, "tokenization_seconds": tokenization_seconds,
+        "training_seconds": training_seconds,
+        "training_examples_per_second": (
+            len(train_data) * args.epochs / training_seconds if training_seconds > 0 else None
+        ),
+        "initial_training_loss": history[0],
         "final_training_loss": history[-1], "initial_validation_loss": before_validation,
         "final_validation_loss": after_validation,
         "initial_validation_perplexity": perplexity(before_validation),
