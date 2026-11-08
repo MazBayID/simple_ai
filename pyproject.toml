@@ -14,6 +14,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+performance = ["numpy>=2.0"]
 
 [project.scripts]
 simple-ai = "simple_ai.cli:main"
