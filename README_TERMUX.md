@@ -74,6 +74,10 @@ PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
   --conversations data/conversations.example.jsonl
 ```
 
+For a separate validation corpus (recommended for comparisons), add
+`--validation-input /path/to/validation.txt`. The tokenizer is fitted only on
+the training file; unseen validation characters map to the unknown token.
+
 Only use data you have permission to train on. Keep private corpora outside Git.
 
 ## 7. Build the C++ prototype
