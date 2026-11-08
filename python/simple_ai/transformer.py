@@ -13,7 +13,6 @@ from collections.abc import Sequence
 
 from .core import Tensor
 from .embedding import Embedding
-from .language_model import train_language_model
 from .nn import Linear, ReLU
 
 
