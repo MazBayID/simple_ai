@@ -53,3 +53,17 @@ PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
 
 The report labels this as an external validation source. Use a third, untouched
 test corpus for final model comparisons; do not repeatedly tune against it.
+
+
+## Benchmark on Termux
+
+After training, measure checkpoint loading and generation:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
+  --generation-tokens 32 --prompt "Halo, apa kabar?"
+```
+
+The report includes load time, generated tokens per second, checkpoint size,
+and Python-traced peak allocation. The memory figure is not total Android
+process RSS; use Android/Termux system tools for process-level RAM profiling.
