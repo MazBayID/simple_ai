@@ -15,7 +15,7 @@ The project aims to be understandable, modular, and modifiable by contributorsâ€
 - Keep runtime and training resource use measurable and suitable for constrained devices; exact RAM/CPU limits are deferred until profiling.
 - Develop capabilities gradually and document experiments honestly.
 
-## Important resource constraint
+## Resource policy
 
 Exact RAM and CPU ceilings are intentionally deferred. We will measure training and inference separately before setting numerical targets.
 
