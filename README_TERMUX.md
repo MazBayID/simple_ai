@@ -80,7 +80,19 @@ the training file; unseen validation characters map to the unknown token.
 
 Only use data you have permission to train on. Keep private corpora outside Git.
 
-## 7. Build the C++ prototype
+## 7. Benchmark inference
+
+After training, measure model loading, generation speed, checkpoint size, and
+Python-traced peak memory:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
+  --generation-tokens 32 --prompt "Halo, apa kabar?"
+```
+
+The memory metric is Python allocations, not total Android process RAM.
+
+## 8. Build the C++ prototype
 
 ```bash
 cd cpp
