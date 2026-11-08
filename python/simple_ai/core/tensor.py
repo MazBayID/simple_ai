@@ -236,6 +236,104 @@ class Tensor:
     def mean(self) -> "Tensor":
         return self.sum() * (1.0 / (self.shape[0] * self.shape[1]))
 
+    def reshape(self, rows: int, columns: int) -> "Tensor":
+        """Return a view-like copy with the same row-major values and gradients."""
+        if rows < 1 or columns < 1 or rows * columns != self.shape[0] * self.shape[1]:
+            raise ValueError("Reshape must preserve the positive element count.")
+        flat = [value for row in self.data for value in row]
+        result = Tensor(
+            [flat[offset:offset + columns] for offset in range(0, len(flat), columns)],
+            requires_grad=self.requires_grad,
+            _parents=(self,),
+        )
+
+        def backward() -> None:
+            flat_grad = [value for row in result.grad for value in row]
+            self._add_grad([
+                flat_grad[offset:offset + self.shape[1]]
+                for offset in range(0, len(flat_grad), self.shape[1])
+            ])
+
+        result._backward = backward
+        return result
+
+    def row(self, index: int) -> "Tensor":
+        """Select one row while preserving its gradient connection."""
+        if index < 0:
+            index += self.shape[0]
+        if index < 0 or index >= self.shape[0]:
+            raise IndexError("Tensor row index out of range.")
+        result = Tensor([self.data[index]], requires_grad=self.requires_grad, _parents=(self,))
+
+        def backward() -> None:
+            if self.requires_grad:
+                for column in range(self.shape[1]):
+                    self.grad[index][column] += result.grad[0][column]
+
+        result._backward = backward
+        return result
+
+    @staticmethod
+    def stack_rows(tensors: Sequence["Tensor"]) -> "Tensor":
+        """Stack single-row tensors into a batch, retaining autograd links."""
+        if not tensors or any(tensor.shape[0] != 1 for tensor in tensors):
+            raise ValueError("stack_rows expects a non-empty sequence of single-row tensors.")
+        width = tensors[0].shape[1]
+        if any(tensor.shape[1] != width for tensor in tensors):
+            raise ValueError("All stacked tensors must have the same column count.")
+        result = Tensor(
+            [list(tensor.data[0]) for tensor in tensors],
+            requires_grad=any(tensor.requires_grad for tensor in tensors),
+            _parents=tuple(tensors),
+        )
+
+        def backward() -> None:
+            for index, tensor in enumerate(tensors):
+                tensor._add_grad([result.grad[index]])
+
+        result._backward = backward
+        return result
+
+    def masked_fill(self, mask: Sequence[Sequence[bool]], value: float) -> "Tensor":
+        """Replace masked entries; gradients do not flow through replaced values."""
+        if len(mask) != self.shape[0] or any(len(row) != self.shape[1] for row in mask):
+            raise ValueError("Mask shape must match tensor shape.")
+        result = Tensor(
+            [[float(value) if mask[i][j] else self.data[i][j]
+              for j in range(self.shape[1])] for i in range(self.shape[0])],
+            requires_grad=self.requires_grad,
+            _parents=(self,),
+        )
+
+        def backward() -> None:
+            self._add_grad([
+                [0.0 if mask[i][j] else result.grad[i][j]
+                 for j in range(self.shape[1])] for i in range(self.shape[0])
+            ])
+
+        result._backward = backward
+        return result
+
+    def softmax(self) -> "Tensor":
+        """Apply numerically stable softmax independently to each row."""
+        probabilities: Matrix = []
+        for row in self.data:
+            maximum = max(row)
+            exponentials = [__import__("math").exp(value - maximum) for value in row]
+            total = sum(exponentials)
+            probabilities.append([value / total for value in exponentials])
+        result = Tensor(probabilities, requires_grad=self.requires_grad, _parents=(self,))
+
+        def backward() -> None:
+            gradients: Matrix = []
+            for probability_row, gradient_row in zip(result.data, result.grad):
+                dot = sum(p * g for p, g in zip(probability_row, gradient_row))
+                gradients.append([p * (g - dot) for p, g in zip(probability_row, gradient_row)])
+            self._add_grad(gradients)
+
+        result._backward = backward
+        return result
+
     def backward(self) -> None:
         """Backpropagate from a scalar tensor and accumulate leaf gradients."""
         if self.shape != (1, 1):
