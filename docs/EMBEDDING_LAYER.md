@@ -41,3 +41,7 @@ PYTHONPATH=python python -m pytest -q tests/test_embedding.py
 - Padding masks, sparse gradient updates, and optimized lookup kernels are
   not implemented.
 - This layer alone does not constitute a language model.
+
+
+The training objective now also includes a numerically stable cross-entropy loss
+for raw vocabulary logits. See [CROSS_ENTROPY.md](CROSS_ENTROPY.md).

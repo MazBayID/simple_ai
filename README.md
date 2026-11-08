@@ -64,12 +64,13 @@ For Android/Termux setup and test commands, see [README_TERMUX.md](README_TERMUX
 - Build and run a small C++ prototype with CMake.
 - Prepare local text as character token IDs and fixed-context next-token examples.
 - Map token IDs to trainable, position-aware embedding features with gradient accumulation.
+- Calculate numerically stable next-token cross-entropy directly from logits and backpropagate classification gradients.
 
 ## Current milestones
 
 **Neural training engine / experimental.** The regression experiment validates parameter learning on the simple target y = 2x; it is not language-model training.
 
-**Tokenizer and dataset pipeline / experimental.** The character tokenizer and next-token dataset establish the text data path. A complete language-model architecture, vocabulary projection, training objective, inference loop, and quality evaluation are still future milestones. The embedding layer is an isolated building block, not a complete model.
+**Tokenizer and dataset pipeline / experimental.** The character tokenizer and next-token dataset establish the text data path. A complete language-model architecture, vocabulary projection, inference loop, and quality evaluation are still future milestones. Embeddings and cross-entropy are isolated building blocks, not a complete model.
 
 See [docs/TOKENIZER_DATASET.md](docs/TOKENIZER_DATASET.md), [docs/TENSOR_ENGINE.md](docs/TENSOR_ENGINE.md), and [docs/TRAINING_ENGINE.md](docs/TRAINING_ENGINE.md).
 
