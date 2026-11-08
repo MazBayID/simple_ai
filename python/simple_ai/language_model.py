@@ -213,3 +213,14 @@ def train_language_model(
             examples_seen += len(targets)
         history.append(weighted_loss / examples_seen)
     return history
+
+
+def load_language_model(path: str | Path):
+    """Load a supported model checkpoint by its self-described architecture."""
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if payload.get("format") == TinyLanguageModel.format_name:
+        return TinyLanguageModel.load(path)
+    if payload.get("format") == "simple-ai-tiny-transformer":
+        from .transformer import TinyTransformerLanguageModel
+        return TinyTransformerLanguageModel.load(path)
+    raise ValueError(f"Unsupported language-model format: {payload.get('format')!r}")
