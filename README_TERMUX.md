@@ -20,7 +20,31 @@ git pull origin main
 PYTHONPATH=python python -m pytest -q
 ```
 
-## 3. Train the Indonesian baseline
+## 3. Collect and prepare the Indonesian corpus
+
+Download and prepare the rights-cleared Indonesian Wikipedia subset (CC BY-SA 4.0).
+The script checks each record's license and revision provenance, normalizes text,
+removes duplicate documents, and creates deterministic document-level splits.
+Raw and processed data remain local and are ignored by Git.
+
+    PYTHONPATH=python python -m simple_ai.experiments.prepare_indonesian_corpus
+
+It requires at least 1,000,000 training characters. See
+docs/INDONESIAN_CORPUS.md for source, attribution, manifest, and license details.
+
+## 4. First million-character training benchmark
+
+Start with one epoch because the pure-Python trainer is not optimized for a
+large corpus. The test split is evaluated after training and is not used for
+gradient updates.
+
+    PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --input data/processed/indonesian_wikipedia/train.txt --validation-input data/processed/indonesian_wikipedia/validation.txt --test-input data/processed/indonesian_wikipedia/test.txt --tokenizer bpe --vocab-size 256 --architecture mlp --context-size 32 --embedding-dim 8 --hidden-size 32 --epochs 1 --batch-size 64 --output-dir artifacts/indonesian_wikipedia_baseline
+
+## 5. Run the local chat harness
+
+    PYTHONPATH=python python -m simple_ai.chat --model artifacts/indonesian_wikipedia_baseline/model.json --tokenizer artifacts/indonesian_wikipedia_baseline/tokenizer.json
+
+## 6. Train the small Indonesian seed baseline
 
 Default: BPE tokenizer, MLP architecture, vocabulary target 128, context 32,
 20 epochs. The actual BPE vocabulary may be smaller if there are not enough
@@ -34,7 +58,7 @@ PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
 The model, tokenizer, and report are saved under
 `artifacts/indonesian_model/`.
 
-## 4. Try the causal Transformer
+## 7. Try the causal Transformer
 
 Start small because this pure-Python implementation is slower than the MLP:
 
@@ -51,14 +75,14 @@ together, then run:
 PYTHONPATH=python python -m simple_ai.chat
 ```
 
-## 5. Compare character tokenization
+## 8. Compare character tokenization
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
   --tokenizer char --output-dir artifacts/indonesian_char
 ```
 
-## 6. Train from your own data
+## 9. Train from your own data
 
 Plain UTF-8 text:
 
@@ -81,7 +105,7 @@ the training file; unseen validation characters map to the unknown token.
 
 Only use data you have permission to train on. Keep private corpora outside Git.
 
-## 7. Benchmark inference
+## 10. Benchmark inference
 
 After training, measure model loading, generation speed, checkpoint size, and
 Python-traced peak memory:
@@ -93,7 +117,7 @@ PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
 
 The memory metric is Python allocations, not total Android process RAM.
 
-## 8. Build the C++ prototype
+## 11. Build the C++ prototype
 
 ```bash
 cd cpp
