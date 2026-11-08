@@ -24,7 +24,8 @@ PYTHONPATH=python python -m pytest -q
 
 Default: BPE tokenizer, MLP architecture, vocabulary target 128, context 32,
 20 epochs. The actual BPE vocabulary may be smaller if there are not enough
-repeated pairs in the corpus.
+repeated pairs in the corpus. The MLP uses SGD by default; Transformer training
+uses Adam with a smaller default learning rate.
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
