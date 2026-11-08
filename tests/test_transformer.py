@@ -44,3 +44,28 @@ def test_transformer_can_train_and_generate():
     generated = model.generate([1, 2], max_new_tokens=3, seed=8)
     assert len(generated) == 3
     assert all(0 <= token < 3 for token in generated)
+
+
+def test_transformer_training_cli_saves_chat_loadable_checkpoint(tmp_path, monkeypatch):
+    from simple_ai.experiments.train_conversation_model import main
+    from simple_ai.language_model import load_language_model
+    from simple_ai.tokenizer import load_tokenizer
+
+    corpus = tmp_path / "corpus.txt"
+    corpus.write_text(("Belajar bahasa Indonesia bersama.\n" * 6), encoding="utf-8")
+    output = tmp_path / "transformer-run"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "train_conversation_model", "--input", str(corpus),
+            "--tokenizer", "bpe", "--architecture", "transformer",
+            "--vocab-size", "32", "--context-size", "4",
+            "--embedding-dim", "2", "--epochs", "1", "--batch-size", "8",
+            "--output-dir", str(output),
+        ],
+    )
+    main()
+    model = load_language_model(output / "model.json")
+    tokenizer = load_tokenizer(output / "tokenizer.json")
+    assert isinstance(model, TinyTransformerLanguageModel)
+    assert model.vocab_size == tokenizer.vocab_size
