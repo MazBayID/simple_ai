@@ -5,7 +5,7 @@ import argparse
 from pathlib import Path
 
 from .conversation import build_chat_prompt
-from .language_model import TinyLanguageModel
+from .language_model import load_language_model
 from .tokenizer import load_tokenizer
 
 
@@ -22,7 +22,7 @@ def main() -> None:
 
     if args.history_turns < 0:
         parser.error("--history-turns must not be negative.")
-    model = TinyLanguageModel.load(Path(args.model))
+    model = load_language_model(Path(args.model))
     tokenizer = load_tokenizer(Path(args.tokenizer))
     if model.vocab_size != tokenizer.vocab_size:
         raise SystemExit("Model and tokenizer vocabulary sizes do not match.")
