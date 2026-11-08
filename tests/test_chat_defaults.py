@@ -22,7 +22,7 @@ def test_chat_defaults_point_to_indonesian_checkpoint(monkeypatch):
         return FakeTokenizer()
 
     monkeypatch.setattr("sys.argv", ["simple-ai-chat"])
-    monkeypatch.setattr("simple_ai.chat.TinyLanguageModel.load", load_model)
+    monkeypatch.setattr("simple_ai.chat.load_language_model", load_model)
     monkeypatch.setattr("simple_ai.chat.load_tokenizer", load_tokenizer)
     monkeypatch.setattr("builtins.input", lambda _: "/exit")
     main()
