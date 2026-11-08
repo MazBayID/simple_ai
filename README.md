@@ -83,3 +83,16 @@ For Android/Termux setup and test commands, see [README_TERMUX.md](README_TERMUX
 **Milestone: first prototype / ready for initial Termux smoke testing.**
 
 This does not mean the planned AI is complete. The next milestones are tokenizer design, data pipeline, neural-network implementation, training experiments, and measured resource profiling.
+
+
+## Tensor engine milestone
+
+A first pure-Python 2-D tensor engine is now available at
+`python/simple_ai/core/tensor.py`. It supports matrix multiplication,
+element-wise arithmetic, transpose, ReLU, reductions, and reverse-mode
+automatic differentiation. It uses only the Python standard library.
+
+This is a correctness-first educational engine, not a performance library.
+See [Tensor Engine documentation](docs/TENSOR_ENGINE.md) for its API,
+limitations, and examples. The next step is to validate gradients further and
+build neural-network layers and an optimizer on top of it.
