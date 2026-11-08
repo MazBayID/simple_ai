@@ -12,6 +12,7 @@ from ..dataset import NextTokenDataset
 from ..language_model import TinyLanguageModel, train_language_model
 from ..transformer import TinyTransformerLanguageModel
 from ..losses import CrossEntropyLoss
+from ..core import backend_name
 from ..optim import Adam, SGD
 from ..tokenizer import BPETokenizer, CharTokenizer
 
@@ -191,6 +192,7 @@ def main() -> None:
         "final_validation_perplexity": perplexity(after_validation),
         "final_test_perplexity": perplexity(final_test_loss),
         "parameters": model.parameter_count(),
+        "compute_backend": backend_name(),
         "warning": "Lower loss is not proof of semantic understanding or useful chat ability.",
     }
     (output_dir / "training_report.json").write_text(
