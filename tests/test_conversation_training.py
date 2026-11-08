@@ -53,3 +53,31 @@ def test_jsonl_validation_splits_whole_records_and_keeps_vocab_train_only(tmp_pa
     assert "z" not in tokenizer.token_to_id
     assert report["validation_source"] == "held_out_conversations"
     assert report["validation_examples"] > 0
+
+
+
+def test_train_conversation_model_reports_independent_test_loss(tmp_path, monkeypatch):
+    import json
+    from simple_ai.experiments.train_conversation_model import main
+
+    train = tmp_path / "train.txt"
+    validation = tmp_path / "validation.txt"
+    test = tmp_path / "test.txt"
+    train.write_text("Halo dunia. Bahasa Indonesia. " * 5, encoding="utf-8")
+    validation.write_text("Halo semua. " * 3, encoding="utf-8")
+    test.write_text("Komputer bekerja. " * 3, encoding="utf-8")
+    output = tmp_path / "model"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "train_conversation_model", "--input", str(train),
+            "--validation-input", str(validation), "--test-input", str(test),
+            "--context-size", "4", "--epochs", "1", "--batch-size", "4",
+            "--vocab-size", "32", "--output-dir", str(output),
+        ],
+    )
+    main()
+    report = json.loads((output / "training_report.json").read_text(encoding="utf-8"))
+    assert report["test_characters"] == len(test.read_text(encoding="utf-8"))
+    assert report["test_examples"] > 0
+    assert report["final_test_loss"] is not None
