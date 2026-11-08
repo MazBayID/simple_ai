@@ -2,6 +2,7 @@
 
 #include <random>
 #include <stdexcept>
+#include <vector>
 
 namespace simple_ai {
 
