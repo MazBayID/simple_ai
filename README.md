@@ -69,7 +69,8 @@ a reliable question-answering assistant.
   self-attention head, residual connection, feed-forward network, and output projection.
 
 The Transformer is intentionally small and implemented using Python lists.
-It has no layer normalization, dropout, KV cache, or optimized matrix kernels.
+It defaults to Adam; the MLP baseline defaults to SGD. It has no layer
+normalization, dropout, KV cache, or optimized matrix kernels.
 Training may be slow on Android. Start with small contexts and batches.
 
 ## Benchmark inference
