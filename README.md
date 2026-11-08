@@ -73,6 +73,22 @@ It defaults to Adam; the MLP baseline defaults to SGD. It has no layer
 normalization, dropout, KV cache, or optimized matrix kernels.
 Training may be slow on Android. Start with small contexts and batches.
 
+## Optional native acceleration
+
+The core Tensor engine remains dependency-free and works with standard Python
+lists. For faster dense matrix multiplication on supported devices, install
+the optional NumPy extra:
+
+```bash
+python -m pip install -e ".[performance]"
+```
+
+When NumPy is available, Tensor matrix multiplication and its gradients use
+NumPy's native kernels; otherwise the pure-Python implementation is used.
+The model/checkpoint format is unchanged. Benchmark both paths on the target
+device before choosing a training configuration: conversion between Python
+lists and NumPy arrays also has a cost, especially for small matrices.
+
 ## Benchmark inference
 
 ```bash
