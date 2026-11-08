@@ -55,9 +55,9 @@ For example, for element-wise multiplication (z = x * y):
 - gradient for (x): (partial L/partial x = (partial L/partial z) * y)
 - gradient for (y): (partial L/partial y = (partial L/partial z) * x)
 
-The current implementation accumulates gradients. Create fresh tensors for a
-new training step, or explicitly reset gradients before reusing parameters.
-A dedicated zero-gradient API and optimizer will be added in a later milestone.
+The current implementation accumulates gradients. Call `zero_grad()` before
+a new training step when reusing parameters. An optimizer will be added in a
+later milestone.
 
 ## Test
 
