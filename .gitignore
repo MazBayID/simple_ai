@@ -10,3 +10,4 @@ venv/
 /sample.txt
 /data/private/
 /data/local/
+/data/processed/
