@@ -12,18 +12,18 @@ The project aims to be understandable, modular, and modifiable by contributorsâ€
 - Explore compiling the native core as a C++ library and exposing it to Python.
 - Fully offline runtime.
 - SQLite for local storage and memory.
-- Target resource ceiling: **1.2 GB RAM and 1 GHz CPU, including training and inference**.
+- Keep runtime and training resource use measurable and suitable for constrained devices; exact RAM/CPU limits are deferred until profiling.
 - Develop capabilities gradually and document experiments honestly.
 
 ## Important resource constraint
 
-The RAM and CPU limits apply to **training as well as inference**. This is a hard project constraint, not a future optimization target.
+Exact RAM and CPU ceilings are intentionally deferred. We will measure training and inference separately before setting numerical targets.
 
-Training capable language models from scratch under this limit is a major research challenge. The initial stages will focus on tiny educational models, efficient data pipelines, and measurable experiments. We will not claim a model meets the target until it has been benchmarked.
+The initial stages focus on tiny educational models, efficient data pipelines, and reproducible experiments. We will not claim resource efficiency until it has been benchmarked.
 
 ## Current status
 
-This repository is in its **foundation / research stage**. No trained model, inference engine, or distributable binary is available yet.
+This repository is in its **early neural-engine research stage**. A small neural training engine and a reproducible regression experiment now exist; no trained language model or conversational inference engine is available yet.
 
 ## Planned structure
 
@@ -37,7 +37,7 @@ The structure will evolve as the project is implemented. Early planned areas:
 
 ## Releases and GitHub Actions
 
-At this stage, Actions should validate the repository and run tests when code exists. We will not upload placeholder model weights or fake binaries.
+GitHub Actions validates the repository and can run a genuine, small neural regression experiment. Its checkpoint is an experiment artifact, not a language model or release binary.
 
 Future release packages may include:
 
@@ -80,9 +80,9 @@ For Android/Termux setup and test commands, see [README_TERMUX.md](README_TERMUX
 
 ## Current milestone
 
-**Milestone: first prototype / ready for initial Termux smoke testing.**
+**Milestone: neural training engine / experimental.**
 
-This does not mean the planned AI is complete. The next milestones are tokenizer design, data pipeline, neural-network implementation, training experiments, and measured resource profiling.
+This does not mean the planned AI is complete. The next milestones are tokenizer design, a language-model dataset pipeline, a small language model, inference, and measured resource profiling.
 
 
 ## Tensor engine milestone
@@ -94,5 +94,9 @@ automatic differentiation. It uses only the Python standard library.
 
 This is a correctness-first educational engine, not a performance library.
 See [Tensor Engine documentation](docs/TENSOR_ENGINE.md) for its API,
-limitations, and examples. The next step is to validate gradients further and
-build neural-network layers and an optimizer on top of it.
+limitations, and examples. Neural-network layers, an SGD optimizer, a loss function, and a training loop are now implemented. See [Training Engine documentation](docs/TRAINING_ENGINE.md).
+
+
+## Neural training engine milestone
+
+A minimal trainable neural-network stack now includes `Linear`, `ReLU`, mean-squared error, SGD, and a full-batch training loop. Run a deterministic regression experiment with `PYTHONPATH=python python -m simple_ai.experiments.train_regression`. GitHub Actions can run the same experiment and upload its checkpoint. This is a training-engine validation task, **not** a language model or conversational AI.
