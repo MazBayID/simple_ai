@@ -7,4 +7,4 @@ cpp/build/
 venv/
 
 /artifacts/
-/sample.txt/
+/sample.txt
