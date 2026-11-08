@@ -7,6 +7,7 @@ educational engine, not a high-performance numerical library.
 from __future__ import annotations
 
 from collections.abc import Sequence
+import math
 from typing import Callable
 
 Matrix = list[list[float]]
