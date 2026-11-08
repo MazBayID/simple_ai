@@ -8,6 +8,7 @@ from pathlib import Path
 from ..conversation import load_conversations, render_conversations
 from ..dataset import NextTokenDataset
 from ..language_model import TinyLanguageModel, train_language_model
+from ..transformer import TinyTransformerLanguageModel
 from ..losses import CrossEntropyLoss
 from ..optim import SGD
 from ..tokenizer import BPETokenizer, CharTokenizer
@@ -32,6 +33,7 @@ def main() -> None:
     source.add_argument("--input", default="data/indonesian_seed.txt")
     source.add_argument("--conversations")
     parser.add_argument("--tokenizer", choices=("bpe", "char"), default="bpe")
+    parser.add_argument("--architecture", choices=("mlp", "transformer"), default="mlp")
     parser.add_argument("--vocab-size", type=int, default=128)
     parser.add_argument("--context-size", type=int, default=32)
     parser.add_argument("--embedding-dim", type=int, default=4)
@@ -77,10 +79,16 @@ def main() -> None:
     validation_data = (NextTokenDataset(validation_ids, context_size=args.context_size)
                        if args.validation_fraction and validation_text else None)
 
-    model = TinyLanguageModel(
-        tokenizer.vocab_size, args.context_size,
-        embedding_dim=args.embedding_dim, hidden_size=args.hidden_size, seed=args.seed,
-    )
+    if args.architecture == "transformer":
+        model = TinyTransformerLanguageModel(
+            tokenizer.vocab_size, args.context_size,
+            embedding_dim=max(2, args.embedding_dim), seed=args.seed,
+        )
+    else:
+        model = TinyLanguageModel(
+            tokenizer.vocab_size, args.context_size,
+            embedding_dim=args.embedding_dim, hidden_size=args.hidden_size, seed=args.seed,
+        )
     before_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
     optimizer = SGD(model.parameters(), learning_rate=args.learning_rate)
     history = train_language_model(
@@ -95,7 +103,8 @@ def main() -> None:
     tokenizer.save(output_dir / "tokenizer.json")
     report = {
         "source": source_description, "characters": len(text),
-        "tokenizer": args.tokenizer, "vocabulary_size": tokenizer.vocab_size,
+        "tokenizer": args.tokenizer, "architecture": args.architecture,
+        "vocabulary_size": tokenizer.vocab_size,
         "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
         "context_size": args.context_size, "training_tokens": len(train_ids),
         "validation_tokens": len(validation_ids) if validation_data else 0,
