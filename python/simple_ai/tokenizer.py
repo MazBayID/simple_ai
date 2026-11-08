@@ -144,7 +144,12 @@ class BPETokenizer:
         if not text:
             raise ValueError("Cannot train a tokenizer on empty text.")
         if vocab_size < len(SPECIAL_TOKENS) + len(set(text)):
-            raise ValueError("vocab_size is smaller than the special and base character vocabulary.")
+            minimum_vocab_size = len(SPECIAL_TOKENS) + len(set(text))
+            raise ValueError(
+                f"vocab_size={vocab_size} is too small for this corpus; "
+                f"at least {minimum_vocab_size} is required "
+                f"({len(set(text))} unique characters + {len(SPECIAL_TOKENS)} special tokens)."
+            )
         if min_frequency < 2:
             raise ValueError("min_frequency must be at least 2.")
         characters = tuple(sorted(set(text)))
