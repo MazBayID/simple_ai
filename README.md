@@ -43,11 +43,11 @@ BPE is now the default tokenizer for the Indonesian experiment:
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
 ```
 
-Choose the vocabulary and context sizes explicitly:
+Choose the tokenizer, architecture, vocabulary, and context sizes explicitly:
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
-  --tokenizer bpe --vocab-size 128 --context-size 32 --epochs 20
+  --tokenizer bpe --architecture transformer --vocab-size 128 \\\n  --context-size 16 --embedding-dim 8 --epochs 5 --batch-size 8
 ```
 
 For a character-level comparison:
@@ -79,7 +79,7 @@ It has no attention, recurrence, or Transformer blocks. The next major engineeri
 milestone is a small causal-attention model, followed by independent evaluation,
 larger licensed data, and device profiling.
 
-See `docs/BPE_TOKENIZER.md`, `docs/LANGUAGE_MODEL.md`, and
+See `docs/BPE_TOKENIZER.md`, `docs/TRANSFORMER.md`, `docs/LANGUAGE_MODEL.md`, and
 `docs/INDONESIAN_CHAT.md`.
 
 ## License
