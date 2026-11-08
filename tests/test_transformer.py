@@ -69,3 +69,28 @@ def test_transformer_training_cli_saves_chat_loadable_checkpoint(tmp_path, monke
     tokenizer = load_tokenizer(output / "tokenizer.json")
     assert isinstance(model, TinyTransformerLanguageModel)
     assert model.vocab_size == tokenizer.vocab_size
+
+
+def test_external_validation_corpus_is_reported_separately(tmp_path, monkeypatch):
+    import json
+    from simple_ai.experiments.train_conversation_model import main
+
+    training = tmp_path / "train.txt"
+    validation = tmp_path / "validation.txt"
+    training.write_text(("Bahasa Indonesia untuk belajar. " * 8), encoding="utf-8")
+    validation.write_text(("Kalimat evaluasi yang terpisah. " * 3), encoding="utf-8")
+    output = tmp_path / "external-validation"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "train_conversation_model", "--input", str(training),
+            "--validation-input", str(validation), "--tokenizer", "bpe",
+            "--vocab-size", "40", "--context-size", "4",
+            "--embedding-dim", "2", "--epochs", "1", "--batch-size", "8",
+            "--output-dir", str(output),
+        ],
+    )
+    main()
+    report = json.loads((output / "training_report.json").read_text(encoding="utf-8"))
+    assert report["validation_source"] == str(validation)
+    assert report["validation_examples"] > 0
