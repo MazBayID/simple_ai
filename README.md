@@ -2,65 +2,53 @@
 
 An open-source project exploring a small, fully offline AI built from scratch.
 
-The project aims to be understandable, modular, and modifiable by contributors—not merely a chatbot wrapper.
-
 ## Project goals
 
-- Build a small language model and AI assistant from the ground up.
-- Python is the primary language for learning, experimentation, and contributor accessibility.
-- C++ is the supporting language for native components and performance-critical operations.
-- Explore compiling the native core as a C++ library and exposing it to Python.
-- Fully offline runtime after model files are available locally.
-- SQLite for local storage and memory.
-- Keep runtime and training resource use measurable; exact RAM/CPU limits are deferred until profiling.
-- Develop capabilities gradually and document experiments honestly.
+- Build a small language model and assistant from the ground up.
+- Use Python for the educational framework and C++ for native/performance experiments.
+- Run inference offline once local model files are available.
+- Explore SQLite for local storage and memory.
+- Measure training/runtime resources before setting device limits.
+- Keep experiments reproducible and document limitations honestly.
 
 ## Current status
 
-The project has a pure-Python autodiff and training engine, a character tokenizer,
-a deterministic BPE tokenizer, next-token datasets, and an experimental fixed-context
-MLP language model. Indonesian training and a local terminal chat harness are available.
+The repository contains a pure-Python tensor/autograd engine, neural-network
+layers, a character tokenizer, a deterministic BPE tokenizer, next-token
+datasets, an MLP language model, and an optional causal Transformer.
 
-**Important:** Simple AI is still a research prototype, not a capable assistant.
-BPE reduces token sequence length but does not add semantic understanding. The
-included seed corpus is only a smoke-test dataset.
-
-## Development principles
-
-1. Build from scratch; existing projects are references, not core dependencies.
-2. Prefer small, testable milestones.
-3. Keep runtime offline.
-4. Measure RAM, CPU time, model size, and quality.
-5. Separate training and validation data.
-6. Document limitations and failed experiments.
-7. Never describe falling training loss as proof of understanding.
+**Important:** Simple AI is a research prototype, not a capable assistant.
+The included Indonesian seed corpus is only a smoke test. BPE and attention
+improve the architecture, but do not create knowledge or guarantee understanding.
 
 ## Train an Indonesian baseline
 
-BPE is now the default tokenizer for the Indonesian experiment:
+The default is BPE + MLP:
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
 ```
 
-Choose the tokenizer, architecture, vocabulary, and context sizes explicitly:
+Try the optional single-head causal Transformer with a small configuration:
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
-  --tokenizer bpe --architecture transformer --vocab-size 128 \\\n  --context-size 16 --embedding-dim 8 --epochs 5 --batch-size 8
+  --tokenizer bpe --architecture transformer --vocab-size 128 \
+  --context-size 16 --embedding-dim 8 --epochs 5 --batch-size 8
 ```
 
-For a character-level comparison:
+Compare with the character tokenizer:
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
   --tokenizer char --output-dir artifacts/indonesian_char
 ```
 
-Use a local UTF-8 corpus or JSONL dialogue file with `--input` or `--conversations`.
-Do not commit private or unlicensed training data.
+Use your own UTF-8 corpus with `--input`, or JSONL conversation pairs with
+`--conversations`. Only use data you have permission to train on; keep private
+corpora outside Git.
 
-## Run the chat harness
+## Run the local chat harness
 
 After training:
 
@@ -68,19 +56,30 @@ After training:
 PYTHONPATH=python python -m simple_ai.chat
 ```
 
-The chat loads the Indonesian checkpoint by default. It can also load the older
-character checkpoint because tokenizer format is detected automatically. This is
-a text-generation experiment, not a reliable question-answering assistant.
+Chat loads the Indonesian checkpoint by default and detects either supported
+model architecture and tokenizer format. It is a generation test harness, not
+a reliable question-answering assistant.
 
-## Architecture and next research milestones
+## Architecture
 
-The current model is embedding → flatten → Linear → ReLU → vocabulary projection.
-It has no attention, recurrence, or Transformer blocks. The next major engineering
-milestone is a small causal-attention model, followed by independent evaluation,
-larger licensed data, and device profiling.
+- **MLP baseline:** token embedding → flatten → Linear → ReLU → vocabulary projection.
+- **Transformer experiment:** learned token/position embeddings, one causal
+  self-attention head, residual connection, feed-forward network, and output projection.
 
-See `docs/BPE_TOKENIZER.md`, `docs/TRANSFORMER.md`, `docs/LANGUAGE_MODEL.md`, and
-`docs/INDONESIAN_CHAT.md`.
+The Transformer is intentionally small and implemented using Python lists.
+It has no layer normalization, dropout, KV cache, or optimized matrix kernels.
+Training may be slow on Android. Start with small contexts and batches.
+
+## Research milestones still required
+
+- A substantially larger, diverse, legally obtained Indonesian corpus.
+- Independent train/validation/test corpora and a repeatable quality benchmark.
+- More Transformer blocks/heads and numerical/performance optimization.
+- Profiling wall time, peak RAM, model size, and generation speed on Termux.
+- Safety, factuality, and instruction-following evaluation before calling it a usable assistant.
+
+See `docs/BPE_TOKENIZER.md`, `docs/TRANSFORMER.md`,
+`docs/LANGUAGE_MODEL.md`, and `docs/INDONESIAN_CHAT.md`.
 
 ## License
 
