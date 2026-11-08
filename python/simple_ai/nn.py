@@ -44,3 +44,32 @@ class ReLU:
 
     def parameters(self) -> list[Tensor]:
         return []
+
+
+
+class LayerNorm:
+    """Learnable row-wise layer normalization (scale and shift)."""
+
+    def __init__(self, dimension: int, *, epsilon: float = 1e-5) -> None:
+        if dimension < 1:
+            raise ValueError("dimension must be positive.")
+        if epsilon <= 0:
+            raise ValueError("epsilon must be positive.")
+        self.dimension = dimension
+        self.epsilon = float(epsilon)
+        self.weight = Tensor([[1.0 for _ in range(dimension)]])
+        self.bias = Tensor([[0.0 for _ in range(dimension)]])
+
+    def __call__(self, inputs: Tensor) -> Tensor:
+        if inputs.shape[1] != self.dimension:
+            raise ValueError(
+                f"Expected {self.dimension} features, got {inputs.shape[1]}."
+            )
+        normalized = inputs.layer_norm(self.epsilon)
+        return (
+            normalized * self.weight.repeat_rows(inputs.shape[0])
+            + self.bias.repeat_rows(inputs.shape[0])
+        )
+
+    def parameters(self) -> list[Tensor]:
+        return [self.weight, self.bias]

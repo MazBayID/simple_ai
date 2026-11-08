@@ -10,7 +10,8 @@ from pathlib import Path
 from ..conversation import load_conversations, render_conversations
 from ..dataset import NextTokenDataset
 from ..language_model import TinyLanguageModel, train_language_model
-from ..transformer import TinyTransformerLanguageModel\nfrom ..multihead_transformer import MultiHeadTransformerLanguageModel
+from ..transformer import TinyTransformerLanguageModel
+from ..multihead_transformer import MultiHeadTransformerLanguageModel
 from ..losses import CrossEntropyLoss
 from ..core import backend_name
 from ..optim import Adam, SGD
@@ -38,7 +39,8 @@ def main() -> None:
     parser.add_argument("--validation-input", help="Optional independent UTF-8 validation corpus.")
     parser.add_argument("--test-input", help="Optional untouched UTF-8 test corpus, evaluated after training.")
     parser.add_argument("--tokenizer", choices=("bpe", "char"), default="bpe")
-    parser.add_argument("--architecture", choices=("mlp", "transformer", "transformer_v2"), default="mlp")\n    parser.add_argument("--num-heads", type=int, default=2, help="Attention heads for transformer_v2.")
+    parser.add_argument("--architecture", choices=("mlp", "transformer", "transformer_v2"), default="mlp")
+    parser.add_argument("--num-heads", type=int, default=2, help="Attention heads for transformer_v2.")
     parser.add_argument("--vocab-size", type=int, default=128)
     parser.add_argument("--context-size", type=int, default=32)
     parser.add_argument("--embedding-dim", type=int, default=4)
@@ -54,6 +56,8 @@ def main() -> None:
 
     if args.context_size < 1 or args.epochs < 1 or args.batch_size < 1:
         parser.error("context size, epochs, and batch size must be positive.")
+    if args.architecture == "transformer_v2" and args.num_heads < 1:
+        parser.error("--num-heads must be positive.")
     if not 0.0 <= args.validation_fraction <= 0.5:
         parser.error("--validation-fraction must be in [0, 0.5].")
 
@@ -180,7 +184,9 @@ def main() -> None:
         "optimizer": optimizer_name, "learning_rate": learning_rate,
         "vocabulary_size": tokenizer.vocab_size,
         "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
-        "context_size": args.context_size,\n        "attention_heads": args.num_heads if args.architecture == "transformer_v2" else None,\n        "training_tokens": len(train_ids),
+        "context_size": args.context_size,
+        "attention_heads": args.num_heads if args.architecture == "transformer_v2" else None,
+        "training_tokens": len(train_ids),
         "validation_tokens": len(validation_ids) if validation_data else 0,
         "test_tokens": len(test_ids),
         "training_examples": len(train_data),

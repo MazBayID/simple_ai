@@ -192,7 +192,7 @@ reported for review, not automatically treated as errors.
 ## Important limitations
 
 - BPE is an educational Unicode-character merge tokenizer, not a production tokenizer.
-- The Transformer is one block and one attention head; it is a learning prototype.
+- The original Transformer is a one-head baseline. Transformer v2 is still a small one-block experiment, not a production-scale model.
 - The chat is a text-generation harness, not proof of comprehension.
 - Validation can be a held-out text region, held-out JSONL records, or a separate corpus; none replaces an untouched final test set.
 - RAM/CPU limits remain deferred until we benchmark on the target Android device.

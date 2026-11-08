@@ -216,7 +216,7 @@ class MultiHeadTransformerLanguageModel:
         destination = Path(path)
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2) + "\\n",
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
 
