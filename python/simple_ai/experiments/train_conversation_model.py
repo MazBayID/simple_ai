@@ -89,6 +89,8 @@ def main() -> None:
             validation_ids_are_independent = False
     if not train_text.strip():
         raise SystemExit("Training corpus is empty or whitespace-only.")
+    if not validation_text and not args.validation_input:
+        validation_source = "none"
     if args.validation_input and not validation_text.strip():
         raise SystemExit("Validation corpus is empty or whitespace-only.")
     tokenization_started = time.perf_counter()
