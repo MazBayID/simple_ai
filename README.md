@@ -61,3 +61,25 @@ Build outputs from ordinary workflow runs will be CI artifacts; versioned distri
 ## License
 
 License selection is pending. Do not assume the project is licensed until a license file is added.
+
+
+## First runnable prototype
+
+The repository now contains a tiny character-transition model, a Python CLI, a SQLite local storage layer, and a C++ native prototype. These are foundation experiments, not a semantic language model or full assistant.
+
+For Android/Termux setup and test commands, see [README_TERMUX.md](README_TERMUX.md).
+
+## Current executable capabilities
+
+- Train the Python toy model from text.
+- Generate short character sequences from learned transition counts.
+- Save and reload a JSON checkpoint.
+- Store local experiment metadata and conversation records in SQLite.
+- Build and run a small C++ prototype with CMake.
+- Run tests and native compilation through GitHub Actions.
+
+## Current milestone
+
+**Milestone: first prototype / ready for initial Termux smoke testing.**
+
+This does not mean the planned AI is complete. The next milestones are tokenizer design, data pipeline, neural-network implementation, training experiments, and measured resource profiling.
