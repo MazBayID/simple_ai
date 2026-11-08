@@ -18,6 +18,11 @@ except ImportError:  # NumPy is an optional acceleration, not a core dependency.
 Matrix = list[list[float]]
 
 
+def backend_name() -> str:
+    """Return the active dense-matrix multiplication backend."""
+    return "numpy" if _np is not None else "python"
+
+
 def _matrix(data: float | int | Sequence[Sequence[float]]) -> Matrix:
     if isinstance(data, (int, float)):
         return [[float(data)]]
