@@ -5,3 +5,6 @@ cpp/build/
 *.egg-info/
 .venv/
 venv/
+
+/artifacts/
+/sample.txt/

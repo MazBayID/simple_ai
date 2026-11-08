@@ -1,86 +1,79 @@
 # Test Simple AI on Termux (Android)
 
-This repository now includes a small neural training experiment. It is still not a conversational assistant or a capable SLM.
+Simple AI is an early offline-AI research project. The neural training engine and text data pipeline are educational prototypes; this repository does not yet provide a conversational assistant or capable SLM.
 
 ## 1. Install tools
-
-In Termux:
 
 ```bash
 pkg update
 pkg upgrade
 pkg install python git clang cmake
+python -m pip install pytest
 ```
 
-## 2. Clone the repository
+## 2. Clone or update the repository
 
 ```bash
 git clone https://github.com/MazBayID/simple_ai.git
 cd simple_ai
 ```
 
-If you already cloned it:
+For an existing clone:
 
 ```bash
 cd ~/simple_ai
 git pull origin main
 ```
 
-## 3. Run Python demo (no third-party runtime dependencies)
+## 3. Run the test suite
+
+```bash
+PYTHONPATH=python python -m pytest -q
+```
+
+## 4. Run the original Python demo
 
 ```bash
 PYTHONPATH=python python -m simple_ai.cli demo
 ```
 
-Expected: prints training statistics and generated text. The generated text may be repetitive or nonsensical; this is a tiny character transition model, not a chatbot.
+The generated text may be repetitive or nonsensical. The original model learns character transition counts, not meaning.
 
-## 4. Train using your own text
+## 5. Run the neural training experiment
 
-Create a small text file:
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_regression
+```
+
+The experiment learns the simple relationship y = 2x and writes a checkpoint to `artifacts/regression_checkpoint.json`. This validates the training engine, not a language model.
+
+## 6. Prepare your own text corpus
+
+Create or place a UTF-8 text file in the repository root. For example:
 
 ```bash
 nano sample.txt
 ```
 
-Write some text, save, then run:
+Then prepare it:
 
 ```bash
-PYTHONPATH=python python -m simple_ai.cli train --data sample.txt --output tiny_model.json
-PYTHONPATH=python python -m simple_ai.cli generate --model tiny_model.json --prompt "Halo" --tokens 100
+PYTHONPATH=python python -m simple_ai.pipeline --input sample.txt --context-size 16
 ```
 
-## 5. Install the CLI package (optional)
+The pipeline writes these files to `artifacts/text_pipeline/`:
 
-```bash
-python -m pip install -e .
-simple-ai demo
-```
+- `tokenizer.json`
+- `token_ids.json`
+- `dataset.json`
 
-## 6. Run tests
+The source `sample.txt` is read-only from the pipeline's perspective; it is not modified. The first tokenizer is character-level, not BPE or a word tokenizer. If the corpus is too short for the chosen context size, rerun with a smaller value such as 4 or 8.
 
-```bash
-python -m pip install pytest
-PYTHONPATH=python python -m pytest -q
-```
+Local `sample.txt` and `artifacts/` are ignored by Git by default. Do not commit private or unlicensed training text accidentally.
 
-## 7. Try the tensor engine
+See [docs/TOKENIZER_DATASET.md](docs/TOKENIZER_DATASET.md) for design details and limitations.
 
-The first tensor engine uses only Python's standard library:
-
-```bash
-PYTHONPATH=python python -c "from simple_ai.core import Tensor; x=Tensor([[1, 2], [3, 4]]); print((x @ x).data)"
-```
-
-Expected output:
-
-```text
-[[7.0, 10.0], [15.0, 22.0]]
-```
-
-Read [docs/TENSOR_ENGINE.md](docs/TENSOR_ENGINE.md) for the API and gradient
-example.
-
-## 8. Build the C++ demo
+## 7. Build the C++ demo
 
 ```bash
 cd cpp
@@ -89,18 +82,8 @@ cmake --build build
 ./build/simple_ai_native_demo
 ```
 
-## 9. Run the neural training experiment
+## Important limitations
 
-From the repository root:
+The character tokenizer and next-token dataset only prepare data. They do not train a language model yet. The current Tensor engine also lacks embedding layers, softmax/cross-entropy, efficient batching, and a vocabulary projection layer. These will be developed and tested as separate milestones.
 
-```bash
-PYTHONPATH=python python -m simple_ai.experiments.train_regression
-```
-
-Expected: the final loss is lower than the initial loss, a learned weight is printed, and `artifacts/regression_checkpoint.json` is created. This is a simple regression experiment, not language-model training.
-
-## Important limitation
-
-The first Python and C++ programs are **tiny character-transition prototypes**. They do not understand meaning, follow instructions, or perform reasoning. They are intended to verify the repository, training loop concept, serialization, CLI, SQLite, and native build before we design a real tokenizer and neural network.
-
-Exact RAM/CPU targets are deferred until profiling. Do not interpret the regression experiment's success as proof that a future SLM will meet any resource target.
+Exact RAM/CPU targets are deferred until profiling. Do not interpret a successful regression experiment as proof that a future SLM will meet any resource target.

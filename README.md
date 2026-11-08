@@ -23,11 +23,9 @@ The initial stages focus on tiny educational models, efficient data pipelines, a
 
 ## Current status
 
-This repository is in its **early neural-engine research stage**. A small neural training engine and a reproducible regression experiment now exist; no trained language model or conversational inference engine is available yet.
+This repository is in its **early neural-engine and language-data research stage**. It has a small neural training engine, a deterministic character tokenizer, and a next-token dataset preparation pipeline. No trained language model or conversational inference engine is available yet.
 
 ## Planned structure
-
-The structure will evolve as the project is implemented. Early planned areas:
 
 - `docs/` — research notes, design decisions, and benchmarks
 - `python/` — Python framework and experiments
@@ -39,15 +37,7 @@ The structure will evolve as the project is implemented. Early planned areas:
 
 GitHub Actions validates the repository and can run a genuine, small neural regression experiment. Its checkpoint is an experiment artifact, not a language model or release binary.
 
-Future release packages may include:
-
-- Source code archive (GitHub provides source archives for tagged releases).
-- Python package, once packaging and APIs are stable.
-- Native C++ library for supported platforms, after it can be built and tested.
-- Tiny model checkpoints only after training, provenance, license, and resource usage are documented.
-- Benchmark reports and checksums as supporting release files.
-
-Build outputs from ordinary workflow runs will be CI artifacts; versioned distributions will be attached to GitHub Releases.
+Future release packages may include source archives, a Python package, a native C++ library, documented model checkpoints, benchmark reports, and checksums after they are properly tested.
 
 ## Development principles
 
@@ -58,45 +48,30 @@ Build outputs from ordinary workflow runs will be CI artifacts; versioned distri
 5. Document limitations and failed experiments.
 6. Do not publish a model or binary as usable until it has been tested.
 
-## License
-
-License selection is pending. Do not assume the project is licensed until a license file is added.
-
-
 ## First runnable prototype
 
-The repository now contains a tiny character-transition model, a Python CLI, a SQLite local storage layer, and a C++ native prototype. These are foundation experiments, not a semantic language model or full assistant.
+The repository contains a tiny character-transition model, a Python CLI, a SQLite local storage layer, and a C++ native prototype. These are foundation experiments, not a semantic language model or full assistant.
 
 For Android/Termux setup and test commands, see [README_TERMUX.md](README_TERMUX.md).
 
 ## Current executable capabilities
 
-- Train the Python toy model from text.
-- Generate short character sequences from learned transition counts.
-- Save and reload a JSON checkpoint.
+- Train the original toy character-transition model and generate short sequences.
+- Save and reload its JSON checkpoint.
 - Store local experiment metadata and conversation records in SQLite.
+- Run a pure-Python 2-D tensor engine with reverse-mode automatic differentiation.
+- Train a tiny neural network using Linear, ReLU, MSE, SGD, and a full-batch training loop.
 - Build and run a small C++ prototype with CMake.
-- Run tests and native compilation through GitHub Actions.
+- Prepare local text as character token IDs and fixed-context next-token examples.
 
-## Current milestone
+## Current milestones
 
-**Milestone: neural training engine / experimental.**
+**Neural training engine / experimental.** The regression experiment validates parameter learning on the simple target y = 2x; it is not language-model training.
 
-This does not mean the planned AI is complete. The next milestones are tokenizer design, a language-model dataset pipeline, a small language model, inference, and measured resource profiling.
+**Tokenizer and dataset pipeline / experimental.** The character tokenizer and next-token dataset establish the text data path. A language-model architecture, embeddings, vocabulary projection, training objective, inference loop, and quality evaluation are still future milestones.
 
+See [docs/TOKENIZER_DATASET.md](docs/TOKENIZER_DATASET.md), [docs/TENSOR_ENGINE.md](docs/TENSOR_ENGINE.md), and [docs/TRAINING_ENGINE.md](docs/TRAINING_ENGINE.md).
 
-## Tensor engine milestone
+## License
 
-A first pure-Python 2-D tensor engine is now available at
-`python/simple_ai/core/tensor.py`. It supports matrix multiplication,
-element-wise arithmetic, transpose, ReLU, reductions, and reverse-mode
-automatic differentiation. It uses only the Python standard library.
-
-This is a correctness-first educational engine, not a performance library.
-See [Tensor Engine documentation](docs/TENSOR_ENGINE.md) for its API,
-limitations, and examples. Neural-network layers, an SGD optimizer, a loss function, and a training loop are now implemented. See [Training Engine documentation](docs/TRAINING_ENGINE.md).
-
-
-## Neural training engine milestone
-
-A minimal trainable neural-network stack now includes `Linear`, `ReLU`, mean-squared error, SGD, and a full-batch training loop. Run a deterministic regression experiment with `PYTHONPATH=python python -m simple_ai.experiments.train_regression`. GitHub Actions can run the same experiment and upload its checkpoint. This is a training-engine validation task, **not** a language model or conversational AI.
+License selection is pending. Do not assume the project is licensed until a license file is added.
