@@ -63,7 +63,24 @@ python -m pip install pytest
 PYTHONPATH=python python -m pytest -q
 ```
 
-## 7. Build the C++ demo
+## 7. Try the tensor engine
+
+The first tensor engine uses only Python's standard library:
+
+```bash
+PYTHONPATH=python python -c "from simple_ai.core import Tensor; x=Tensor([[1, 2], [3, 4]]); print((x @ x).data)"
+```
+
+Expected output:
+
+```text
+[[7.0, 10.0], [15.0, 22.0]]
+```
+
+Read [docs/TENSOR_ENGINE.md](docs/TENSOR_ENGINE.md) for the API and gradient
+example.
+
+## 8. Build the C++ demo
 
 ```bash
 cd cpp
