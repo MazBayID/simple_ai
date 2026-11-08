@@ -129,6 +129,7 @@ def main() -> None:
             tokenizer.vocab_size, args.context_size,
             embedding_dim=args.embedding_dim, hidden_size=args.hidden_size, seed=args.seed,
         )
+    before_training = evaluate(model, train_data, args.batch_size)
     before_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
     optimizer_name = args.optimizer or ("adam" if args.architecture == "transformer" else "sgd")
     learning_rate = args.learning_rate
@@ -147,6 +148,7 @@ def main() -> None:
         batch_size=args.batch_size, seed=args.seed,
     )
     training_seconds = time.perf_counter() - training_started
+    after_training = evaluate(model, train_data, args.batch_size)
     after_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
     final_test_loss = evaluate(model, test_data, args.batch_size) if test_data else None
 
@@ -180,8 +182,10 @@ def main() -> None:
         "training_examples_per_second": (
             len(train_data) * args.epochs / training_seconds if training_seconds > 0 else None
         ),
-        "initial_training_loss": history[0],
-        "final_training_loss": history[-1], "initial_validation_loss": before_validation,
+        "initial_training_loss": before_training,
+        "final_training_loss": after_training,
+        "epoch_training_loss_history": history,
+        "initial_validation_loss": before_validation,
         "final_validation_loss": after_validation, "final_test_loss": final_test_loss,
         "initial_validation_perplexity": perplexity(before_validation),
         "final_validation_perplexity": perplexity(after_validation),
