@@ -76,7 +76,9 @@ jobs:
           python-version: "3.12"
       - name: Create a small deterministic smoke corpus
         run: |
-          printf 'Halo dunia. Kita belajar bahasa Indonesia.\n%.0s' {1..12} > /tmp/transformer-smoke.txt
+          for i in $(seq 1 12); do
+            echo "Halo dunia. Kita belajar bahasa Indonesia."
+          done > /tmp/transformer-smoke.txt
       - name: Train one Transformer epoch
         env:
           PYTHONPATH: python
