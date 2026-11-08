@@ -10,6 +10,11 @@ from collections.abc import Sequence
 import math
 from typing import Callable
 
+try:
+    import numpy as _np
+except ImportError:  # NumPy is an optional acceleration, not a core dependency.
+    _np = None
+
 Matrix = list[list[float]]
 
 
@@ -149,13 +154,19 @@ class Tensor:
         if self.shape[1] != other.shape[0]:
             raise ValueError(f"Cannot multiply shapes {self.shape} and {other.shape}.")
         rows, inner, columns = self.shape[0], self.shape[1], other.shape[1]
-        values = [
-            [
-                sum(self.data[i][k] * other.data[k][j] for k in range(inner))
-                for j in range(columns)
+        if _np is not None:
+            # Keep the public/storage format as Python lists, while delegating
+            # the expensive dense multiply to NumPy's optimized native kernels.
+            values = (_np.asarray(self.data, dtype=_np.float64)
+                      @ _np.asarray(other.data, dtype=_np.float64)).tolist()
+        else:
+            values = [
+                [
+                    sum(self.data[i][k] * other.data[k][j] for k in range(inner))
+                    for j in range(columns)
+                ]
+                for i in range(rows)
             ]
-            for i in range(rows)
-        ]
         result = Tensor(
             values,
             requires_grad=self.requires_grad or other.requires_grad,
@@ -163,6 +174,15 @@ class Tensor:
         )
 
         def backward() -> None:
+            if _np is not None:
+                grad = _np.asarray(result.grad, dtype=_np.float64)
+                if self.requires_grad:
+                    left_grad = grad @ _np.asarray(other.data, dtype=_np.float64).T
+                    self._add_grad(left_grad.tolist())
+                if other.requires_grad:
+                    right_grad = _np.asarray(self.data, dtype=_np.float64).T @ grad
+                    other._add_grad(right_grad.tolist())
+                return
             if self.requires_grad:
                 right_t = _transpose(other.data)
                 self._add_grad([
