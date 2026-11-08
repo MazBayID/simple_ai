@@ -54,28 +54,42 @@ def main() -> None:
     if not 0.0 <= args.validation_fraction < 0.5:
         parser.error("--validation-fraction must be in [0, 0.5).")
 
+    validation_source = args.validation_input or "contiguous_holdout"
     if args.conversations:
         records = load_conversations(args.conversations)
-        text = render_conversations(records)
         source_description = f"{len(records)} conversation pairs"
+        if args.validation_input:
+            train_text = render_conversations(records)
+            validation_text = Path(args.validation_input).read_text(encoding="utf-8")
+            validation_source = args.validation_input
+        else:
+            split_at = max(1, min(
+                int(len(records) * (1.0 - args.validation_fraction)), len(records)
+            ))
+            train_text = render_conversations(records[:split_at])
+            validation_records = records[split_at:]
+            validation_text = render_conversations(validation_records) if validation_records else ""
+            validation_source = "held_out_conversations"
+        validation_ids_are_independent = True
+        text = train_text
     else:
         text = Path(args.input).read_text(encoding="utf-8")
         source_description = args.input
-    if not text.strip():
+        if args.validation_input:
+            train_text = text
+            validation_text = Path(args.validation_input).read_text(encoding="utf-8")
+            validation_source = args.validation_input
+            validation_ids_are_independent = True
+        else:
+            split_at = int(len(text) * (1.0 - args.validation_fraction))
+            split_at = max(1, min(split_at, len(text)))
+            train_text = text[:split_at]
+            validation_text = text[split_at:]
+            validation_ids_are_independent = False
+    if not train_text.strip():
         raise SystemExit("Training corpus is empty or whitespace-only.")
-
-    if args.validation_input:
-        train_text = text
-        validation_text = Path(args.validation_input).read_text(encoding="utf-8")
-        if not validation_text.strip():
-            raise SystemExit("Validation corpus is empty or whitespace-only.")
-        validation_ids_are_independent = True
-    else:
-        split_at = int(len(text) * (1.0 - args.validation_fraction))
-        split_at = max(1, min(split_at, len(text)))
-        train_text = text[:split_at]
-        validation_text = text[split_at:]
-        validation_ids_are_independent = False
+    if args.validation_input and not validation_text.strip():
+        raise SystemExit("Validation corpus is empty or whitespace-only.")
     if args.tokenizer == "bpe":
         tokenizer = BPETokenizer.train(train_text, vocab_size=args.vocab_size)
     else:
@@ -132,7 +146,7 @@ def main() -> None:
         return math.exp(min(loss, 700.0))
 
     report = {
-        "source": source_description, "validation_source": args.validation_input or "contiguous_holdout",
+        "source": source_description, "validation_source": validation_source,
         "training_characters": len(train_text), "validation_characters": len(validation_text),
         "tokenization_tokens_per_character": len(train_ids) / max(1, len(train_text)),
         "characters": len(text),
