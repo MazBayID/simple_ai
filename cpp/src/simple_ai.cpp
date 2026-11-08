@@ -14,9 +14,9 @@ void TinyTransitionModel::train(const std::string& text) {
     counts_.clear();
     initial_counts_.clear();
 
-    char previous = '\\0';
+    char previous = '\0';
     for (const char current : text) {
-        if (previous == '\\0') {
+        if (previous == '\0') {
             ++initial_counts_[current];
         } else {
             ++counts_[previous][current];
@@ -37,7 +37,7 @@ std::string TinyTransitionModel::generate(
 
     std::string output = prompt;
     std::mt19937 generator(seed);
-    char previous = output.empty() ? '\\0' : output.back();
+    char previous = output.empty() ? '\0' : output.back();
 
     for (std::size_t i = 0; i < max_new_tokens; ++i) {
         const auto found = counts_.find(previous);
