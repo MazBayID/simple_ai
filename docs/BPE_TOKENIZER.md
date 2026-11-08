@@ -33,5 +33,6 @@ PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
 ## Limitations
 
 BPE reduces sequence length; it does not create knowledge or understanding.
-The model is still the fixed-context MLP baseline. A separate, larger and
-properly licensed corpus plus a stronger architecture are still required.
+The default model is a fixed-context MLP; an optional one-block, single-head
+causal Transformer is available. Both remain research prototypes. A separate,
+larger and properly licensed corpus plus independent evaluation are still required.
