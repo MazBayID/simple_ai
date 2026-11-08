@@ -2,48 +2,90 @@
 
 ## Purpose
 
-This milestone connects the existing tokenizer, fixed-context dataset, neural language model, and a small terminal chat harness. It establishes an Indonesian-language training path without importing a pretrained model or a third-party ML framework.
+This pipeline trains a small language model locally without a pretrained model
+or third-party machine-learning framework. It supports an MLP baseline and an
+optional one-block, single-head causal Transformer.
 
 ## Data formats
 
-Plain text is accepted as UTF-8. JSONL conversation data contains one object per line:
+Plain UTF-8 text is accepted with `--input`. JSONL conversation data contains
+one object per line:
 
 ```json
 {"user":"Apa itu Python?","assistant":"Python adalah bahasa pemrograman."}
 ```
 
-Each record is rendered with the literal role labels `Pengguna:` and `Asisten:`. The labels are ordinary characters, not special tokens and not a true role-aware architecture.
+Role labels `Pengguna:` and `Asisten:` are plain text, not special tokens or
+a role-aware instruction architecture. JSONL validation splits whole records
+rather than splitting an exchange in the middle.
 
-A small Indonesian seed text and six example exchanges are provided only to test the pipeline. They are not a useful-scale training corpus.
+## Tokenizers
+
+- `--tokenizer bpe` (default): deterministic Unicode-character BPE trained
+  only on the training portion.
+- `--tokenizer char`: original character-level baseline.
+
+BPE reduces token sequence length, but does not add semantic understanding.
+See `BPE_TOKENIZER.md` for its limitations.
 
 ## Training and validation
 
-The training command reserves a contiguous tail of the token sequence for validation. A context-sized overlap supplies the first validation example with preceding characters. Training examples come only from the earlier portion. The report records source, corpus size, vocabulary, context size, example counts, parameter count, and initial/final training and validation losses.
+Default training reserves a contiguous tail of a plain-text source for
+validation. For JSONL data, complete records are held out. For an independent
+validation corpus, use `--validation-input`; the tokenizer is fitted only on
+the training data. The report includes training/validation loss, validation
+perplexity, vocabulary size, merge count, tokenization ratio, parameter count,
+and optimizer configuration.
 
-This split is a basic diagnostic. It does not replace evaluation on a separate, independently collected test corpus. A falling training loss can indicate memorization. A falling validation loss is not proof of understanding.
+A lower loss or perplexity does not prove factuality, comprehension, or useful
+chat ability. Keep a third, untouched test corpus for final comparisons.
 
-## Run
+## Architecture choices
 
+Default MLP:
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
-PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --conversations data/conversations.example.jsonl
+```
+
+Causal Transformer (start with small settings on Android):
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
+  --tokenizer bpe --architecture transformer --context-size 16 \
+  --embedding-dim 8 --epochs 5 --batch-size 8
+```
+
+The Transformer is a single attention head and one block, implemented with
+pure-Python matrix operations. It defaults to Adam; the MLP defaults to SGD.
+
+## Chat
+
+After training:
+```bash
 PYTHONPATH=python python -m simple_ai.chat
 ```
 
-The default output directory is `artifacts/indonesian_model/`.
+Chat loads the Indonesian model and matching tokenizer from
+`artifacts/indonesian_model/`. It detects either supported architecture and
+tokenizer format. It does not update weights while chatting and may generate
+nonsense.
 
-## Chat loop
+## Benchmark
 
-The chat loop loads the model and tokenizer, formats a user message with a short history, and autoregressively samples characters. It does not update weights during chat. Unknown input characters become `<unk>`; the model can only generate characters in its trained vocabulary.
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
+  --generation-tokens 32 --prompt "Halo, apa kabar?"
+```
 
-## Architecture limitations
+This measures checkpoint load time, generation speed, checkpoint size, and
+Python-traced peak allocation. It does not measure total Android process RSS.
 
-The current model is an embedding lookup followed by flattening, one hidden Linear/ReLU layer, and a vocabulary projection. It has a fixed context window and no attention, recurrence, positional sequence processing beyond flattened embedding slots, retrieval, or semantic grounding. The model is a learning baseline—not a dependable conversational assistant.
+## Remaining work
 
-## Next research milestones
+1. Obtain a much larger, diverse Indonesian corpus with clear legal provenance.
+2. Audit duplicates, encoding, language distribution, private/sensitive data,
+   and train/validation/test separation.
+3. Extend the architecture and optimize the numerical engine.
+4. Evaluate held-out prompts for fluency, relevance, factuality, and consistency.
+5. Profile time, peak RAM, model size, and generation speed on the target device.
 
-1. Collect a substantially larger Indonesian corpus with clear provenance and redistribution permissions.
-2. Build a robust dataset audit: duplicates, encoding, language distribution, unsafe/private content, and train/validation/test separation.
-3. Add a subword tokenizer and a more suitable sequence architecture.
-4. Evaluate on held-out Indonesian prompts for fluency, relevance, factuality, and consistency.
-5. Profile training and inference memory/time on Termux before choosing resource targets.
+The seed corpus is only an end-to-end smoke test, not a useful-scale dataset.
