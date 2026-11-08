@@ -98,3 +98,12 @@ See `docs/BPE_TOKENIZER.md`, `docs/TRANSFORMER.md`,
 ## License
 
 License selection is pending. Do not assume the project is licensed until a license file is added.
+
+
+## Prepare a provenance-tracked Indonesian corpus
+
+A downloader and cleaner prepares a rights-cleared Indonesian Wikipedia subset (CC BY-SA 4.0). It verifies revision provenance, removes exact duplicate texts, and creates deterministic document-level train/validation/test splits. Raw and processed corpus files stay local and are ignored by Git.
+
+    PYTHONPATH=python python -m simple_ai.experiments.prepare_indonesian_corpus
+
+The pipeline requires at least 1,000,000 training characters and writes a manifest plus attribution record. See [docs/INDONESIAN_CORPUS.md](docs/INDONESIAN_CORPUS.md) for details.
