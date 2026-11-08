@@ -10,7 +10,7 @@ from ..dataset import NextTokenDataset
 from ..language_model import TinyLanguageModel, train_language_model
 from ..transformer import TinyTransformerLanguageModel
 from ..losses import CrossEntropyLoss
-from ..optim import SGD
+from ..optim import Adam, SGD
 from ..tokenizer import BPETokenizer, CharTokenizer
 
 
@@ -41,7 +41,8 @@ def main() -> None:
     parser.add_argument("--hidden-size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=20)
     parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--learning-rate", type=float, default=0.03)
+    parser.add_argument("--optimizer", choices=("sgd", "adam"))
+    parser.add_argument("--learning-rate", type=float)
     parser.add_argument("--validation-fraction", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--output-dir", default="artifacts/indonesian_model")
@@ -103,7 +104,17 @@ def main() -> None:
             embedding_dim=args.embedding_dim, hidden_size=args.hidden_size, seed=args.seed,
         )
     before_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
-    optimizer = SGD(model.parameters(), learning_rate=args.learning_rate)
+    optimizer_name = args.optimizer or ("adam" if args.architecture == "transformer" else "sgd")
+    learning_rate = args.learning_rate
+    if learning_rate is None:
+        learning_rate = 0.001 if optimizer_name == "adam" else 0.03
+    if learning_rate <= 0:
+        parser.error("--learning-rate must be positive.")
+    optimizer = (
+        Adam(model.parameters(), learning_rate=learning_rate)
+        if optimizer_name == "adam"
+        else SGD(model.parameters(), learning_rate=learning_rate)
+    )
     history = train_language_model(
         model, train_data, optimizer, epochs=args.epochs,
         batch_size=args.batch_size, seed=args.seed,
@@ -118,6 +129,7 @@ def main() -> None:
         "source": source_description, "validation_source": args.validation_input or "contiguous_holdout",
         "characters": len(text),
         "tokenizer": args.tokenizer, "architecture": args.architecture,
+        "optimizer": optimizer_name, "learning_rate": learning_rate,
         "vocabulary_size": tokenizer.vocab_size,
         "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
         "context_size": args.context_size, "training_tokens": len(train_ids),
