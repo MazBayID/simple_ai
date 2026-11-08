@@ -32,6 +32,7 @@ def main() -> None:
     source = parser.add_mutually_exclusive_group()
     source.add_argument("--input", default="data/indonesian_seed.txt")
     source.add_argument("--conversations")
+    parser.add_argument("--validation-input", help="Optional independent UTF-8 validation corpus.")
     parser.add_argument("--tokenizer", choices=("bpe", "char"), default="bpe")
     parser.add_argument("--architecture", choices=("mlp", "transformer"), default="mlp")
     parser.add_argument("--vocab-size", type=int, default=128)
@@ -87,8 +88,9 @@ def main() -> None:
     if len(train_ids) <= args.context_size:
         raise SystemExit("Training corpus is too short for the selected context size.")
     train_data = NextTokenDataset(train_ids, context_size=args.context_size)
+    validation_enabled = bool(args.validation_input) or args.validation_fraction > 0
     validation_data = (NextTokenDataset(validation_ids, context_size=args.context_size)
-                       if args.validation_fraction and validation_text else None)
+                       if validation_enabled and validation_text else None)
 
     if args.architecture == "transformer":
         model = TinyTransformerLanguageModel(
