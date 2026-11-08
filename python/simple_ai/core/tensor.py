@@ -262,6 +262,104 @@ class Tensor:
     def mean(self) -> "Tensor":
         return self.sum() * (1.0 / (self.shape[0] * self.shape[1]))
 
+
+    def layer_norm(self, epsilon: float = 1e-5) -> "Tensor":
+        """Normalize each row independently, retaining an exact backward pass."""
+        if not math.isfinite(epsilon) or epsilon <= 0:
+            raise ValueError("epsilon must be a finite positive number.")
+        width = self.shape[1]
+        normalized: Matrix = []
+        inverse_stds: list[float] = []
+        for row in self.data:
+            mean = sum(row) / width
+            variance = sum((value - mean) ** 2 for value in row) / width
+            inverse_std = 1.0 / math.sqrt(variance + epsilon)
+            inverse_stds.append(inverse_std)
+            normalized.append([(value - mean) * inverse_std for value in row])
+
+        result = Tensor(
+            normalized,
+            requires_grad=self.requires_grad,
+            _parents=(self,),
+        )
+
+        def backward() -> None:
+            gradients: Matrix = []
+            for row_index, (norm_row, grad_row) in enumerate(
+                zip(result.data, result.grad)
+            ):
+                sum_gradient = sum(grad_row)
+                sum_gradient_times_norm = sum(
+                    gradient * value for gradient, value in zip(grad_row, norm_row)
+                )
+                inverse_std = inverse_stds[row_index]
+                gradients.append([
+                    inverse_std / width * (
+                        width * gradient
+                        - sum_gradient
+                        - value * sum_gradient_times_norm
+                    )
+                    for gradient, value in zip(grad_row, norm_row)
+                ])
+            self._add_grad(gradients)
+
+        result._backward = backward
+        return result
+
+    def repeat_rows(self, count: int) -> "Tensor":
+        """Repeat a single parameter row and sum repeated gradients on backward."""
+        if not isinstance(count, int) or isinstance(count, bool) or count < 1:
+            raise ValueError("count must be a positive integer.")
+        if self.shape[0] != 1:
+            raise ValueError("repeat_rows requires a tensor with exactly one row.")
+        result = Tensor(
+            [list(self.data[0]) for _ in range(count)],
+            requires_grad=self.requires_grad,
+            _parents=(self,),
+        )
+
+        def backward() -> None:
+            if not self.requires_grad:
+                return
+            for row in result.grad:
+                for column, gradient in enumerate(row):
+                    self.grad[0][column] += gradient
+
+        result._backward = backward
+        return result
+
+    @staticmethod
+    def concatenate_columns(tensors: Sequence["Tensor"]) -> "Tensor":
+        """Concatenate tensors side-by-side while preserving gradient routes."""
+        if not tensors:
+            raise ValueError("concatenate_columns expects at least one tensor.")
+        rows = tensors[0].shape[0]
+        if any(tensor.shape[0] != rows for tensor in tensors):
+            raise ValueError("All tensors must have the same number of rows.")
+        values = [
+            [value for tensor in tensors for value in tensor.data[row_index]]
+            for row_index in range(rows)
+        ]
+        result = Tensor(
+            values,
+            requires_grad=any(tensor.requires_grad for tensor in tensors),
+            _parents=tuple(tensors),
+        )
+
+        def backward() -> None:
+            offset = 0
+            for tensor in tensors:
+                width = tensor.shape[1]
+                if tensor.requires_grad:
+                    tensor._add_grad([
+                        result.grad[row_index][offset:offset + width]
+                        for row_index in range(rows)
+                    ])
+                offset += width
+
+        result._backward = backward
+        return result
+
     def reshape(self, rows: int, columns: int) -> "Tensor":
         """Return a view-like copy with the same row-major values and gradients."""
         if rows < 1 or columns < 1 or rows * columns != self.shape[0] * self.shape[1]:

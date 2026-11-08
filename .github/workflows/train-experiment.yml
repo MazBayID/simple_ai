@@ -66,7 +66,7 @@ jobs:
           retention-days: 14
 
   train-transformer-smoke:
-    name: Train tiny causal Transformer smoke test
+    name: Train multi-head causal Transformer v2 smoke test
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -85,8 +85,8 @@ jobs:
         run: |
           python -m simple_ai.experiments.train_conversation_model \
             --input /tmp/transformer-smoke.txt \
-            --tokenizer char --architecture transformer \
-            --context-size 8 --embedding-dim 4 \
+            --tokenizer char --architecture transformer_v2 \
+            --context-size 8 --embedding-dim 4 --num-heads 2 \
             --epochs 1 --batch-size 8 \
             --output-dir artifacts/transformer_smoke
       - name: Upload Transformer smoke checkpoint

@@ -223,4 +223,7 @@ def load_language_model(path: str | Path):
     if payload.get("format") == "simple-ai-tiny-transformer":
         from .transformer import TinyTransformerLanguageModel
         return TinyTransformerLanguageModel.load(path)
+    if payload.get("format") == "simple-ai-multihead-transformer":
+        from .multihead_transformer import MultiHeadTransformerLanguageModel
+        return MultiHeadTransformerLanguageModel.load(path)
     raise ValueError(f"Unsupported language-model format: {payload.get('format')!r}")

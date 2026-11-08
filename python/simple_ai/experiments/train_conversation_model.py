@@ -10,7 +10,7 @@ from pathlib import Path
 from ..conversation import load_conversations, render_conversations
 from ..dataset import NextTokenDataset
 from ..language_model import TinyLanguageModel, train_language_model
-from ..transformer import TinyTransformerLanguageModel
+from ..transformer import TinyTransformerLanguageModel\nfrom ..multihead_transformer import MultiHeadTransformerLanguageModel
 from ..losses import CrossEntropyLoss
 from ..core import backend_name
 from ..optim import Adam, SGD
@@ -38,7 +38,7 @@ def main() -> None:
     parser.add_argument("--validation-input", help="Optional independent UTF-8 validation corpus.")
     parser.add_argument("--test-input", help="Optional untouched UTF-8 test corpus, evaluated after training.")
     parser.add_argument("--tokenizer", choices=("bpe", "char"), default="bpe")
-    parser.add_argument("--architecture", choices=("mlp", "transformer"), default="mlp")
+    parser.add_argument("--architecture", choices=("mlp", "transformer", "transformer_v2"), default="mlp")\n    parser.add_argument("--num-heads", type=int, default=2, help="Attention heads for transformer_v2.")
     parser.add_argument("--vocab-size", type=int, default=128)
     parser.add_argument("--context-size", type=int, default=32)
     parser.add_argument("--embedding-dim", type=int, default=4)
@@ -125,6 +125,14 @@ def main() -> None:
             tokenizer.vocab_size, args.context_size,
             embedding_dim=max(2, args.embedding_dim), seed=args.seed,
         )
+    elif args.architecture == "transformer_v2":
+        model_dim = max(2, args.embedding_dim)
+        if model_dim % args.num_heads:
+            parser.error("--embedding-dim must be divisible by --num-heads.")
+        model = MultiHeadTransformerLanguageModel(
+            tokenizer.vocab_size, args.context_size,
+            embedding_dim=model_dim, num_heads=args.num_heads, seed=args.seed,
+        )
     else:
         model = TinyLanguageModel(
             tokenizer.vocab_size, args.context_size,
@@ -132,7 +140,7 @@ def main() -> None:
         )
     before_training = evaluate(model, train_data, args.batch_size)
     before_validation = evaluate(model, validation_data, args.batch_size) if validation_data else None
-    optimizer_name = args.optimizer or ("adam" if args.architecture == "transformer" else "sgd")
+    optimizer_name = args.optimizer or ("adam" if args.architecture in ("transformer", "transformer_v2") else "sgd")
     learning_rate = args.learning_rate
     if learning_rate is None:
         learning_rate = 0.001 if optimizer_name == "adam" else 0.03
@@ -172,7 +180,7 @@ def main() -> None:
         "optimizer": optimizer_name, "learning_rate": learning_rate,
         "vocabulary_size": tokenizer.vocab_size,
         "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
-        "context_size": args.context_size, "training_tokens": len(train_ids),
+        "context_size": args.context_size,\n        "attention_heads": args.num_heads if args.architecture == "transformer_v2" else None,\n        "training_tokens": len(train_ids),
         "validation_tokens": len(validation_ids) if validation_data else 0,
         "test_tokens": len(test_ids),
         "training_examples": len(train_data),

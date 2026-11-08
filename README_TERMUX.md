@@ -75,14 +75,39 @@ together, then run:
 PYTHONPATH=python python -m simple_ai.chat
 ```
 
-## 8. Compare character tokenization
+## 8. Try the multi-head Transformer v2
+
+The original `--architecture transformer` remains available as a single-head
+baseline. The new `transformer_v2` adds multiple causal attention heads,
+pre-layer normalization, residual connections, and a final normalization.
+It uses a separate checkpoint format so the original model remains loadable.
+
+Start with a small, controlled run:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
+  --input artifacts/benchmark_inputs/train.txt \
+  --validation-input artifacts/benchmark_inputs/validation.txt \
+  --tokenizer bpe --vocab-size 151 --architecture transformer_v2 \
+  --context-size 32 --embedding-dim 8 --num-heads 2 \
+  --epochs 1 --batch-size 64 \
+  --output-dir artifacts/transformer_v2_benchmark
+```
+
+Compare `final_validation_loss`, `final_validation_perplexity`, training
+time, and generated samples against the MLP and original Transformer runs.
+Keep the same tokenizer, data split, seed, and training settings when comparing
+architectures. One run is only a smoke benchmark, not proof of better language
+quality.
+
+## 9. Compare character tokenization
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
   --tokenizer char --output-dir artifacts/indonesian_char
 ```
 
-## 9. Train from your own data
+## 10. Train from your own data
 
 Plain UTF-8 text:
 
@@ -105,7 +130,7 @@ the training file; unseen validation characters map to the unknown token.
 
 Only use data you have permission to train on. Keep private corpora outside Git.
 
-## 10. Benchmark inference
+## 11. Benchmark inference
 
 After training, measure model loading, generation speed, checkpoint size, and
 Python-traced peak memory:
@@ -117,7 +142,7 @@ PYTHONPATH=python python -m simple_ai.experiments.benchmark_model \
 
 The memory metric is Python allocations, not total Android process RAM.
 
-## 11. Evaluate generated text
+## 12. Evaluate generated text
 
 After training, run the same fixed prompts against a checkpoint. The report
 records the architecture, active compute backend, generation speed, token
@@ -140,7 +165,7 @@ Training reports and inference benchmarks now include `compute_backend`
 (`numpy` or `python`) so results can be compared without guessing which
 matrix multiplication path was active.
 
-## 12. Build the C++ prototype
+## 13. Build the C++ prototype
 
 ```bash
 cd cpp
@@ -149,7 +174,7 @@ cmake --build build
 ./build/simple_ai_native_demo
 ```
 
-## 13. Audit corpus character composition
+## 14. Audit corpus character composition
 
 Before changing the tokenizer or filtering data, inspect the Unicode
 composition of each split. The audit is read-only and does not delete
