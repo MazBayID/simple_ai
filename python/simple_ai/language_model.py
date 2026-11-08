@@ -13,7 +13,7 @@ from .dataset import NextTokenDataset
 from .embedding import Embedding
 from .losses import CrossEntropyLoss
 from .nn import Linear, ReLU
-from .optim import SGD
+from .optim import Adam, SGD
 
 
 class TinyLanguageModel:
@@ -174,7 +174,7 @@ class TinyLanguageModel:
 def train_language_model(
     model: TinyLanguageModel,
     dataset: NextTokenDataset,
-    optimizer: SGD,
+    optimizer: SGD | Adam,
     *,
     epochs: int,
     batch_size: int = 16,
