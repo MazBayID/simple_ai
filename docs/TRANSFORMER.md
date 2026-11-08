@@ -13,7 +13,10 @@ own 2-D Tensor/autograd engine.
 
 The causal mask prevents a position from attending to later positions. The
 implementation uses a single attention head and one block; it has no layer
-normalization, dropout, KV cache, or optimized matrix kernels.
+normalization, dropout, KV cache, or optimized matrix kernels. Transformer
+training defaults to Adam at learning rate 0.001; the MLP baseline defaults
+to SGD at 0.03. Both can be selected explicitly with `--optimizer` and
+`--learning-rate`.
 
 ## Train
 
