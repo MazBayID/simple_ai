@@ -21,7 +21,8 @@ def test_cross_entropy_gradient_is_softmax_minus_one_hot():
 def test_cross_entropy_averages_gradient_across_batch():
     logits = Tensor([[0.0, 0.0], [0.0, 0.0]])
     CrossEntropyLoss()(logits, [0, 1]).backward()
-    assert logits.grad == pytest.approx([[-0.25, 0.25], [0.25, -0.25]])
+    flattened = [value for row in logits.grad for value in row]
+    assert flattened == pytest.approx([-0.25, 0.25, 0.25, -0.25])
 
 
 def test_cross_entropy_is_stable_for_large_logits():
