@@ -157,7 +157,7 @@ class BPETokenizer:
             best_count = max(counts.values())
             if best_count < min_frequency:
                 break
-            existing_tokens = set(characters)
+            existing_tokens = set(characters) | set(SPECIAL_TOKENS)
             for left, right in merges:
                 existing_tokens.add(left + right)
             candidates = [
