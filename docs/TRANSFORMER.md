@@ -38,3 +38,18 @@ context, embedding dimension, and dataset on Android. Benchmark wall time and
 peak memory before increasing them. A Transformer architecture alone does not
 create language knowledge; training data and independent evaluation remain
 essential.
+
+## Independent validation
+
+For a more meaningful check, provide a separate corpus that was not used to
+fit the tokenizer or train the model:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
+  --input data/train.txt --validation-input data/validation.txt \
+  --tokenizer bpe --architecture transformer --context-size 16 \
+  --embedding-dim 8 --epochs 5 --batch-size 8
+```
+
+The report labels this as an external validation source. Use a third, untouched
+test corpus for final model comparisons; do not repeatedly tune against it.
