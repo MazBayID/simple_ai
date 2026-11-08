@@ -85,8 +85,8 @@ jobs:
         run: |
           python -m simple_ai.experiments.train_conversation_model \
             --input /tmp/transformer-smoke.txt \
-            --tokenizer bpe --architecture transformer \
-            --vocab-size 64 --context-size 8 --embedding-dim 4 \
+            --tokenizer char --architecture transformer \
+            --context-size 8 --embedding-dim 4 \
             --epochs 1 --batch-size 8 \
             --output-dir artifacts/transformer_smoke
       - name: Upload Transformer smoke checkpoint
