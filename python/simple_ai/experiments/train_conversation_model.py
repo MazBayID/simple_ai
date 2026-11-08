@@ -1,10 +1,4 @@
-"""Train Simple AI on Indonesian text or JSONL conversation pairs.
-
-Examples:
-  PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
-  PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --conversations data/conversations.example.jsonl
-  PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --input data/indonesian_seed.txt --context-size 48 --epochs 80
-"""
+"""Train Simple AI on Indonesian text or JSONL conversation pairs."""
 from __future__ import annotations
 
 import argparse
@@ -16,7 +10,7 @@ from ..dataset import NextTokenDataset
 from ..language_model import TinyLanguageModel, train_language_model
 from ..losses import CrossEntropyLoss
 from ..optim import SGD
-from ..tokenizer import CharTokenizer
+from ..tokenizer import BPETokenizer, CharTokenizer
 
 
 def evaluate(model: TinyLanguageModel, dataset: NextTokenDataset, batch_size: int) -> float | None:
@@ -35,8 +29,10 @@ def evaluate(model: TinyLanguageModel, dataset: NextTokenDataset, batch_size: in
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train the Indonesian Simple AI language-model baseline.")
     source = parser.add_mutually_exclusive_group()
-    source.add_argument("--input", default="data/indonesian_seed.txt", help="UTF-8 Indonesian plain-text corpus.")
-    source.add_argument("--conversations", help="JSONL file with one {user, assistant} object per line.")
+    source.add_argument("--input", default="data/indonesian_seed.txt")
+    source.add_argument("--conversations")
+    parser.add_argument("--tokenizer", choices=("bpe", "char"), default="bpe")
+    parser.add_argument("--vocab-size", type=int, default=128)
     parser.add_argument("--context-size", type=int, default=32)
     parser.add_argument("--embedding-dim", type=int, default=4)
     parser.add_argument("--hidden-size", type=int, default=32)
@@ -63,17 +59,23 @@ def main() -> None:
     if not text.strip():
         raise SystemExit("Training corpus is empty or whitespace-only.")
 
-    tokenizer = CharTokenizer.from_text(text)
-    token_ids = tokenizer.encode(text)
-    if len(token_ids) <= args.context_size + 1:
-        raise SystemExit("Corpus is too short for the selected context size.")
+    split_at = int(len(text) * (1.0 - args.validation_fraction))
+    split_at = max(1, min(split_at, len(text)))
+    train_text = text[:split_at]
+    validation_text = text[split_at:]
+    if args.tokenizer == "bpe":
+        tokenizer = BPETokenizer.train(train_text, vocab_size=args.vocab_size)
+    else:
+        tokenizer = CharTokenizer.from_text(train_text)
 
-    split = int(len(token_ids) * (1.0 - args.validation_fraction))
-    split = max(args.context_size + 1, min(split, len(token_ids)))
-    train_ids = token_ids[:split]
-    validation_ids = token_ids[max(0, split - args.context_size):]
+    train_ids = tokenizer.encode(train_text, add_bos=True, add_eos=False)
+    validation_body = tokenizer.encode(validation_text, add_bos=False, add_eos=True)
+    validation_ids = train_ids[-args.context_size:] + validation_body
+    if len(train_ids) <= args.context_size:
+        raise SystemExit("Training corpus is too short for the selected context size.")
     train_data = NextTokenDataset(train_ids, context_size=args.context_size)
-    validation_data = NextTokenDataset(validation_ids, context_size=args.context_size) if args.validation_fraction else None
+    validation_data = (NextTokenDataset(validation_ids, context_size=args.context_size)
+                       if args.validation_fraction and validation_text else None)
 
     model = TinyLanguageModel(
         tokenizer.vocab_size, args.context_size,
@@ -92,19 +94,17 @@ def main() -> None:
     model.save(output_dir / "model.json")
     tokenizer.save(output_dir / "tokenizer.json")
     report = {
-        "source": source_description,
-        "characters": len(text),
-        "vocabulary_size": tokenizer.vocab_size,
-        "context_size": args.context_size,
+        "source": source_description, "characters": len(text),
+        "tokenizer": args.tokenizer, "vocabulary_size": tokenizer.vocab_size,
+        "learned_merges": len(tokenizer.merges) if isinstance(tokenizer, BPETokenizer) else 0,
+        "context_size": args.context_size, "training_tokens": len(train_ids),
+        "validation_tokens": len(validation_ids) if validation_data else 0,
         "training_examples": len(train_data),
         "validation_examples": len(validation_data) if validation_data else 0,
-        "epochs": args.epochs,
-        "initial_training_loss": history[0],
-        "final_training_loss": history[-1],
-        "initial_validation_loss": before_validation,
-        "final_validation_loss": after_validation,
-        "parameters": model.parameter_count(),
-        "warning": "A lower loss is not proof of semantic understanding or useful chat ability.",
+        "epochs": args.epochs, "initial_training_loss": history[0],
+        "final_training_loss": history[-1], "initial_validation_loss": before_validation,
+        "final_validation_loss": after_validation, "parameters": model.parameter_count(),
+        "warning": "Lower loss is not proof of semantic understanding or useful chat ability.",
     }
     (output_dir / "training_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"

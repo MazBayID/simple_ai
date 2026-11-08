@@ -15,24 +15,15 @@ The project aims to be understandable, modular, and modifiable by contributors�
 - Keep runtime and training resource use measurable; exact RAM/CPU limits are deferred until profiling.
 - Develop capabilities gradually and document experiments honestly.
 
-## Resource policy
-
-Exact RAM and CPU ceilings are intentionally deferred. Training and inference must be measured separately before setting numerical targets. The current model is small, but no performance guarantee is made for every Android device.
-
 ## Current status
 
-The repository now has a pure-Python neural training engine, character tokenizer, text pipeline, and a first fixed-context character-level MLP language model. An Indonesian text seed corpus, JSONL conversation format, validation-loss reporting, and a local terminal chat loop are included as research tools.
+The project has a pure-Python autodiff and training engine, a character tokenizer,
+a deterministic BPE tokenizer, next-token datasets, and an experimental fixed-context
+MLP language model. Indonesian training and a local terminal chat harness are available.
 
-**Important:** this is still an experimental character model, not a capable assistant. The included Indonesian corpus is deliberately small and only verifies the end-to-end training path. It does not provide broad Indonesian knowledge or reliable answers.
-
-## Planned structure
-
-- `docs/` — research notes, design decisions, and benchmarks
-- `data/` — small public/example training data; private corpora should remain local
-- `python/` — Python framework and experiments
-- `cpp/` — native C++ components
-- `tests/` — correctness tests
-- `.github/workflows/` — continuous integration and training automation
+**Important:** Simple AI is still a research prototype, not a capable assistant.
+BPE reduces token sequence length but does not add semantic understanding. The
+included seed corpus is only a smoke-test dataset.
 
 ## Development principles
 
@@ -44,55 +35,52 @@ The repository now has a pure-Python neural training engine, character tokenizer
 6. Document limitations and failed experiments.
 7. Never describe falling training loss as proof of understanding.
 
-## Current executable capabilities
+## Train an Indonesian baseline
 
-- Train and sample the original toy character-transition model.
-- Save and reload JSON checkpoints.
-- Store local experiment metadata and conversation records in SQLite.
-- Run a pure-Python 2-D tensor engine with reverse-mode automatic differentiation.
-- Train small neural networks with Linear, ReLU, MSE, SGD, and cross-entropy.
-- Build a small C++ prototype with CMake.
-- Tokenize Unicode text at character level and prepare fixed-context next-token examples.
-- Train an experimental fixed-context MLP language model from scratch.
-- Read Indonesian JSONL conversation pairs and render them as plain-text dialogue.
-- Split a corpus into contiguous training and validation regions and report both losses.
-- Run an interactive local terminal chat demo using a saved model and tokenizer.
-
-## Indonesian experiment
-
-Default training uses the small included seed corpus:
+BPE is now the default tokenizer for the Indonesian experiment:
 
 ```bash
 PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model
 ```
 
-Train from conversation pairs instead:
+Choose the vocabulary and context sizes explicitly:
 
 ```bash
-PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --conversations data/conversations.example.jsonl --context-size 32 --epochs 20
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
+  --tokenizer bpe --vocab-size 128 --context-size 32 --epochs 20
 ```
 
-For a larger local corpus:
+For a character-level comparison:
 
 ```bash
-PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --input /path/to/indonesian_corpus.txt --context-size 48 --epochs 30
+PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model \
+  --tokenizer char --output-dir artifacts/indonesian_char
 ```
 
-The model, tokenizer, and training report are saved in `artifacts/indonesian_model/`. Start the experimental chat:
+Use a local UTF-8 corpus or JSONL dialogue file with `--input` or `--conversations`.
+Do not commit private or unlicensed training data.
+
+## Run the chat harness
+
+After training:
 
 ```bash
 PYTHONPATH=python python -m simple_ai.chat
 ```
 
-The chat program is an inference interface only. It does not add knowledge to the model, and out-of-vocabulary characters become `<unk>`. Better dialogue requires much more clean Indonesian text and many diverse, high-quality conversation examples.
+The chat loads the Indonesian checkpoint by default. It can also load the older
+character checkpoint because tokenizer format is detected automatically. This is
+a text-generation experiment, not a reliable question-answering assistant.
 
-## Current architecture and limitations
+## Architecture and next research milestones
 
-The language model is an embedding → flatten → Linear → ReLU → vocabulary projection MLP. It predicts one character at a time from a fixed-size context. It has no attention, recurrence, transformer blocks, subword tokenizer, retrieval, or semantic representation. The simple chat loop is therefore a test harness, not evidence of useful conversation.
+The current model is embedding → flatten → Linear → ReLU → vocabulary projection.
+It has no attention, recurrence, or Transformer blocks. The next major engineering
+milestone is a small causal-attention model, followed by independent evaluation,
+larger licensed data, and device profiling.
 
-Validation loss is measured on a held-out contiguous portion of the same source file. This is a basic leakage-aware check, not a comprehensive benchmark. For meaningful evaluation, use a separate corpus and questions never seen during training.
-
-See `docs/LANGUAGE_MODEL.md`, `docs/TOKENIZER_DATASET.md`, and `docs/INDONESIAN_CHAT.md`.
+See `docs/BPE_TOKENIZER.md`, `docs/LANGUAGE_MODEL.md`, and
+`docs/INDONESIAN_CHAT.md`.
 
 ## License
 
