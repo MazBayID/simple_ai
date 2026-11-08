@@ -32,7 +32,7 @@ def test_bpe_save_load_and_auto_loader(tmp_path):
 
 
 def test_bpe_rejects_vocab_smaller_than_base_vocabulary():
-    with pytest.raises(ValueError, match="smaller"):
+    with pytest.raises(ValueError, match="at least 10"):
         BPETokenizer.train("abcxyz", vocab_size=5)
 
 
