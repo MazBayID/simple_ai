@@ -30,10 +30,10 @@ Outputs:
 Start with one epoch as a runtime benchmark. The pure-Python trainer is not
 optimized for million-character corpora.
 
-    PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --input data/processed/indonesian_wikipedia/train.txt --validation-input data/processed/indonesian_wikipedia/validation.txt --tokenizer bpe --vocab-size 256 --architecture mlp --context-size 32 --embedding-dim 8 --hidden-size 32 --epochs 1 --batch-size 64 --output-dir artifacts/indonesian_wikipedia_baseline
+    PYTHONPATH=python python -m simple_ai.experiments.train_conversation_model --input data/processed/indonesian_wikipedia/train.txt --validation-input data/processed/indonesian_wikipedia/validation.txt --test-input data/processed/indonesian_wikipedia/test.txt --tokenizer bpe --vocab-size 256 --architecture mlp --context-size 32 --embedding-dim 8 --hidden-size 32 --epochs 1 --batch-size 64 --output-dir artifacts/indonesian_wikipedia_baseline
 
-The untouched test split will be evaluated after training when --test-input is
-supported by the trainer. Preserve the test split for final evaluation.
+Pass --test-input data/processed/indonesian_wikipedia/test.txt to evaluate the
+untouched test split after training. It is never used for gradient updates.
 
 ## Licensing
 
