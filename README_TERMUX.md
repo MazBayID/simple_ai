@@ -1,6 +1,6 @@
 # Test Simple AI on Termux (Android)
 
-This is the first runnable milestone, not a conversational assistant or a capable SLM yet.
+This repository now includes a small neural training experiment. It is still not a conversational assistant or a capable SLM.
 
 ## 1. Install tools
 
@@ -89,8 +89,18 @@ cmake --build build
 ./build/simple_ai_native_demo
 ```
 
+## 9. Run the neural training experiment
+
+From the repository root:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.train_regression
+```
+
+Expected: the final loss is lower than the initial loss, a learned weight is printed, and `artifacts/regression_checkpoint.json` is created. This is a simple regression experiment, not language-model training.
+
 ## Important limitation
 
 The first Python and C++ programs are **tiny character-transition prototypes**. They do not understand meaning, follow instructions, or perform reasoning. They are intended to verify the repository, training loop concept, serialization, CLI, SQLite, and native build before we design a real tokenizer and neural network.
 
-Training and inference RAM/CPU limits are project targets. This prototype has not yet been formally benchmarked against the 1.2 GB RAM / 1 GHz ceiling. Do not interpret the tiny prototype's success as proof that a future SLM will meet the limits.
+Exact RAM/CPU targets are deferred until profiling. Do not interpret the regression experiment's success as proof that a future SLM will meet any resource target.
