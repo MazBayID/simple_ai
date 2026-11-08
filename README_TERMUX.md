@@ -149,6 +149,21 @@ cmake --build build
 ./build/simple_ai_native_demo
 ```
 
+## 13. Audit corpus character composition
+
+Before changing the tokenizer or filtering data, inspect the Unicode
+composition of each split. The audit is read-only and does not delete
+non-Latin text automatically:
+
+```bash
+PYTHONPATH=python python -m simple_ai.experiments.audit_corpus \
+  --input data/processed/indonesian_wikipedia/train.txt \
+  --output artifacts/evaluation/corpus_unicode_audit.json
+```
+
+Repeat for `validation.txt` and `test.txt`. Non-Latin characters are
+reported for review, not automatically treated as errors.
+
 ## Important limitations
 
 - BPE is an educational Unicode-character merge tokenizer, not a production tokenizer.
