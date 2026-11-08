@@ -56,6 +56,10 @@ class Tensor:
         self._parents = _parents
         self._backward = _backward or (lambda: None)
 
+    def zero_grad(self) -> None:
+        """Reset this tensor's accumulated gradient to zero."""
+        self.grad = _zeros(self.shape)
+
     def _add_grad(self, values: Matrix) -> None:
         if not self.requires_grad:
             return
