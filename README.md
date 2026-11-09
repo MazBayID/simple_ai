@@ -130,3 +130,14 @@ The pipeline requires at least 1,000,000 training characters and writes a manife
 A separate v2 training pipeline uses byte-level BPE, a larger decoder-only Transformer, warmup/cosine learning-rate scheduling, and resumable Drive checkpoints. It preserves the v1 training pipeline and artifacts.
 
 See [docs/INDONESIAN_V2_CLOUD_TRAINING.md](docs/INDONESIAN_V2_CLOUD_TRAINING.md) for the Colab smoke test, full training, resume, evaluation, and generation commands.
+
+## Simple AI v3 supervised fine-tuning
+
+The v3 SFT pipeline fine-tunes the v2 byte-BPE Transformer checkpoint on
+instruction/answer JSONL pairs. Prompt tokens are masked from the training
+loss, and the v2 checkpoint/tokenizer remain unchanged. Dataset normalization
+creates deterministic train/validation/test splits and removes exact duplicate
+pairs.
+
+See [docs/SFT_TRAINING_V1.md](docs/SFT_TRAINING_V1.md) for Colab preparation,
+training, checkpoint resume, and licensing notes.
