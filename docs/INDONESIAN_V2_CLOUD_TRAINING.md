@@ -61,7 +61,7 @@ Use the v1 prepared corpus in Drive. No need to download or prepare it again if 
 
 ## First smoke test
 
-Run only 20 optimizer steps to verify the tokenizer, GPU, model, loss, checkpoint, and resume path before starting a long run:
+Run only 20 optimizer steps to verify the tokenizer, GPU, model, loss, packed dataset counts, and checkpoint creation before starting a long run:
 
 ~~~bash
 !python -m simple_ai.experiments.train_torch_v2 \
