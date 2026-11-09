@@ -133,3 +133,35 @@ def test_checkpoint_restores_model_and_optimizer(tmp_path):
     assert state["step_in_epoch"] == 7
     assert state["global_step"] == 107
     assert state["best_validation_loss"] == 2.5
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is unavailable")
+def test_checkpoint_restores_cuda_rng_when_loaded_onto_cuda(tmp_path):
+    model = tiny_model().cuda()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    checkpoint_path = tmp_path / "cuda_checkpoint.pt"
+
+    save_checkpoint(
+        checkpoint_path,
+        model=model,
+        optimizer=optimizer,
+        epoch=0,
+        step_in_epoch=0,
+        global_step=0,
+        best_validation_loss=None,
+        config={"model": model.get_config()},
+    )
+
+    restored_model = tiny_model().cuda()
+    restored_optimizer = torch.optim.AdamW(
+        restored_model.parameters(), lr=1e-3
+    )
+    state = load_checkpoint(
+        checkpoint_path,
+        model=restored_model,
+        optimizer=restored_optimizer,
+        map_location="cuda",
+        restore_rng=True,
+    )
+
+    assert state["global_step"] == 0
