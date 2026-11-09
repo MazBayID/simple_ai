@@ -10,7 +10,9 @@ This experiment is separate from the v1 train_torch.py pipeline. It uses a dedic
 - Default decoder-only Transformer: 6 layers, 8 attention heads, 256-dimensional embeddings (about 6.85 million parameters at an 8,000-token vocabulary).
 - AdamW with linear learning-rate warmup and cosine decay.
 - Atomic checkpoints and deterministic epoch sampler, so interrupted runs can resume.
-- Packed token-stream dataset: every non-empty document is retained and separated with EOS/BOS markers, so short articles are no longer discarded just because they are shorter than the context size.\n- Non-overlapping context windows by default (stride equals context size), plus one final overlapping window when needed so the stream's last EOS is trained as a target.\n- Separate generation command that encodes prompts with BOS and explicitly excludes EOS.
+- Packed token-stream dataset: every non-empty document is retained and separated with EOS/BOS markers, so short articles are no longer discarded just because they are shorter than the context size.
+- Non-overlapping context windows by default (stride equals context size), plus one final overlapping window when needed so the stream's last EOS is trained as a target.
+- Separate generation command that encodes prompts with BOS and explicitly excludes EOS.
 
 The model is still a small experimental language model. A larger vocabulary and more parameters do not guarantee coherent answers; corpus diversity and training quality remain important.
 
@@ -28,7 +30,8 @@ If /content/simple_ai already exists from the v1 work, do not clone it again. Sw
 ~~~bash
 %cd /content/simple_ai
 !git fetch origin
-!git checkout main\n!git reset --hard origin/main
+!git checkout main
+!git reset --hard origin/main
 !python -m pip install -e ".[cloud,dev]"
 ~~~
 
