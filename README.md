@@ -123,3 +123,10 @@ A downloader and cleaner prepares a rights-cleared Indonesian Wikipedia subset (
     PYTHONPATH=python python -m simple_ai.experiments.prepare_indonesian_corpus
 
 The pipeline requires at least 1,000,000 training characters and writes a manifest plus attribution record. See [docs/INDONESIAN_CORPUS.md](docs/INDONESIAN_CORPUS.md) for details.
+
+
+## Simple AI v2 cloud experiment
+
+A separate v2 training pipeline uses byte-level BPE, a larger decoder-only Transformer, warmup/cosine learning-rate scheduling, and resumable Drive checkpoints. It preserves the v1 training pipeline and artifacts.
+
+See [docs/INDONESIAN_V2_CLOUD_TRAINING.md](docs/INDONESIAN_V2_CLOUD_TRAINING.md) for the Colab smoke test, full training, resume, evaluation, and generation commands.
