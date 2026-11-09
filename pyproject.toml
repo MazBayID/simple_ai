@@ -15,7 +15,7 @@ dependencies = []
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 performance = ["numpy>=2.0"]
-cloud = ["numpy>=1.26", "torch>=2.2"]
+cloud = ["numpy>=1.26", "torch>=2.2", "tokenizers>=0.20"]
 
 [project.scripts]
 simple-ai = "simple_ai.cli:main"
