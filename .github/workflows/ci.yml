@@ -30,6 +30,23 @@ jobs:
           PYTHONPATH: python
         run: python -m pytest -q
 
+  torch-backend-tests:
+    name: PyTorch backend tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install CPU PyTorch and test tools
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
+          python -m pip install pytest numpy
+      - name: Run PyTorch backend tests
+        env:
+          PYTHONPATH: python
+        run: python -m pytest -q tests/test_torch_backend.py
+
   cpp-build:
     name: C++ native build
     runs-on: ubuntu-latest
