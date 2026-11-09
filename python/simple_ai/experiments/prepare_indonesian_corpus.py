@@ -109,7 +109,7 @@ def write_corpus(source: Path, output_dir: Path, minimum_training_characters: in
                 handle.write(json.dumps(
                     {"title": item["title"], "text": item["text"]},
                     ensure_ascii=False,
-                ) + "\\n")
+                ) + "\n")
         file_hashes[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
 
     provenance = [{
