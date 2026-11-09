@@ -5,7 +5,7 @@ import pytest
 torch = pytest.importorskip("torch")
 pytest.importorskip("tokenizers")
 
-from simple_ai.experiments import train_torch_v2
+from simple_ai.experiments import train_torch_v2, generate_torch_v2
 
 
 def write_jsonl(path, title, text):
@@ -73,3 +73,18 @@ def test_v2_training_smoke_creates_resumable_artifacts(tmp_path, monkeypatch):
     assert report["global_step"] == 1
     assert report["final_validation_loss"] is not None
     assert report["final_test_loss"] is not None
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "generate_torch_v2",
+            "--checkpoint", str(output / "checkpoint_latest.pt"),
+            "--tokenizer", str(output / "tokenizer.json"),
+            "--prompt", "Bahasa Indonesia",
+            "--max-new-tokens", "2",
+            "--top-k", "5",
+            "--device", "cpu",
+        ],
+    )
+    generate_torch_v2.main()
