@@ -20,7 +20,7 @@ from torch.utils.data import DataLoader, RandomSampler
 from ..byte_bpe import ByteBPETokenizer
 from ..tokenizer import CharTokenizer, BPETokenizer, load_tokenizer
 from ..torch_backend.checkpoint import load_checkpoint, save_checkpoint
-from ..torch_backend.dataset import DocumentTokenDataset, load_documents
+from ..torch_backend.dataset import PackedTokenDataset, load_documents
 from ..torch_backend.model import GPTConfig, GPTLanguageModel
 
 
@@ -53,7 +53,7 @@ def build_tokenizer(kind: str, documents: list[str], vocab_size: int):
 
 def evaluate(
     model: GPTLanguageModel,
-    dataset: DocumentTokenDataset,
+    dataset: PackedTokenDataset,
     *,
     batch_size: int,
     device: torch.device,
@@ -124,6 +124,10 @@ def main() -> None:
     )
     parser.add_argument("--vocab-size", type=int, default=8000)
     parser.add_argument("--context-size", type=int, default=256)
+    parser.add_argument(
+        "--window-stride", type=int, default=None,
+        help="Token-stream window stride; defaults to context size (non-overlapping input blocks).",
+    )
     parser.add_argument("--embedding-dim", type=int, default=256)
     parser.add_argument("--num-heads", type=int, default=8)
     parser.add_argument("--num-layers", type=int, default=6)
@@ -170,6 +174,8 @@ def main() -> None:
         parser.error("--min-lr-ratio must be in (0, 1].")
     if args.warmup_steps < 0 or args.max_steps < 0 or args.num_workers < 0:
         parser.error("Warmup, max steps, and workers cannot be negative.")
+    if args.window_stride is not None and args.window_stride < 1:
+        parser.error("--window-stride must be positive.")
     if args.eval_batches < 0 or args.gradient_clip <= 0:
         parser.error("Evaluation batches cannot be negative and gradient clip must be positive.")
 
@@ -205,14 +211,17 @@ def main() -> None:
         )
         tokenizer.save(tokenizer_path)
 
-    train_data = DocumentTokenDataset(
-        train_documents, tokenizer, context_size=args.context_size
+    train_data = PackedTokenDataset(
+        train_documents, tokenizer, context_size=args.context_size,
+        stride=args.window_stride,
     )
-    validation_data = DocumentTokenDataset(
-        validation_documents, tokenizer, context_size=args.context_size
+    validation_data = PackedTokenDataset(
+        validation_documents, tokenizer, context_size=args.context_size,
+        stride=train_data.stride,
     )
-    test_data = DocumentTokenDataset(
-        test_documents, tokenizer, context_size=args.context_size
+    test_data = PackedTokenDataset(
+        test_documents, tokenizer, context_size=args.context_size,
+        stride=train_data.stride,
     )
     if not len(train_data) or not len(validation_data) or not len(test_data):
         raise SystemExit("At least one split produced zero training windows.")
@@ -246,6 +255,8 @@ def main() -> None:
         "weight_decay": args.weight_decay,
         "tokenizer_format": tokenizer.format_name,
         "tokenizer_vocab_size": tokenizer.vocab_size,
+        "dataset_format": "packed-token-stream-v1",
+        "window_stride": train_data.stride,
         "context_size": args.context_size,
         "batch_size": args.batch_size,
         "seed": args.seed,
@@ -283,6 +294,10 @@ def main() -> None:
     print(f"vocabulary_size: {tokenizer.vocab_size:,}")
     print(f"documents: train={len(train_documents):,} validation={len(validation_documents):,} test={len(test_documents):,}")
     print(f"windows: train={len(train_data):,} validation={len(validation_data):,} test={len(test_data):,}")
+    print(f"packed_tokens: train={train_data.total_tokens:,} validation={validation_data.total_tokens:,} test={test_data.total_tokens:,}")
+    print(f"window_stride: {train_data.stride}")
+    print(f"dropped_tail_tokens: train={train_data.dropped_tokens:,} validation={validation_data.dropped_tokens:,} test={test_data.dropped_tokens:,}")
+    print(f"empty_documents_skipped: train={train_data.skipped_documents} validation={validation_data.skipped_documents} test={test_data.skipped_documents}")
     print(f"parameters: {parameter_count:,}")
     print(f"steps_per_epoch: {steps_per_epoch:,}")
     print(f"planned_total_steps: {total_steps:,}")
@@ -435,6 +450,21 @@ def main() -> None:
         "vocabulary_size": tokenizer.vocab_size,
         "model_config": model.get_config(),
         "parameters": parameter_count,
+        "dataset": {
+            "format": "packed-token-stream-v1",
+            "window_stride": train_data.stride,
+            "train_tokens": train_data.total_tokens,
+            "validation_tokens": validation_data.total_tokens,
+            "test_tokens": test_data.total_tokens,
+            "train_windows": len(train_data),
+            "validation_windows": len(validation_data),
+            "test_windows": len(test_data),
+            "dropped_tail_tokens": {
+                "train": train_data.dropped_tokens,
+                "validation": validation_data.dropped_tokens,
+                "test": test_data.dropped_tokens,
+            },
+        },
         "global_step": global_step,
         "planned_total_steps": total_steps,
         "best_validation_loss": best_validation_loss,
