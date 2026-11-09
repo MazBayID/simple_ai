@@ -189,6 +189,16 @@ def main() -> None:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     tokenizer_path = output_dir / "tokenizer.json"
+    if not args.resume:
+        # A fresh run must not leave an older checkpoint/report looking current.
+        for artifact_name in (
+            "checkpoint_latest.pt",
+            "checkpoint_best.pt",
+            "training_report.json",
+        ):
+            artifact = output_dir / artifact_name
+            if artifact.exists():
+                artifact.unlink()
 
     seed_everything(args.seed)
     device = choose_device(args.device)
