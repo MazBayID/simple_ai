@@ -99,6 +99,13 @@ def load_checkpoint(
             torch.set_rng_state(rng["torch"].cpu())
         cuda_states = rng.get("cuda")
         if cuda_states is not None and torch.cuda.is_available():
+            # torch.load(map_location="cuda") also moves saved RNG tensors
+            # onto CUDA. CUDA RNG restoration specifically expects CPU
+            # ByteTensors, so normalize each state before restoring it.
+            cuda_states = [
+                state.detach().to(device="cpu", dtype=torch.uint8)
+                for state in cuda_states
+            ]
             torch.cuda.set_rng_state_all(cuda_states)
 
     return {
