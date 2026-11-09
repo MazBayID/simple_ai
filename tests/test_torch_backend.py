@@ -6,7 +6,7 @@ torch = pytest.importorskip("torch")
 
 from simple_ai.tokenizer import CharTokenizer
 from simple_ai.torch_backend.checkpoint import load_checkpoint, save_checkpoint
-from simple_ai.torch_backend.dataset import DocumentTokenDataset
+from simple_ai.torch_backend.dataset import DocumentTokenDataset, PackedTokenDataset
 from simple_ai.torch_backend.model import GPTConfig, GPTLanguageModel
 
 
@@ -84,6 +84,40 @@ def test_document_dataset_never_crosses_document_boundaries():
         )
         characters = set(decoded)
         assert any(characters <= allowed for allowed in allowed_character_sets)
+
+
+def test_packed_dataset_keeps_short_documents_and_document_markers():
+    documents = ["abcdefgh", "ijklmnop", "qrstuvwx"]
+    tokenizer = CharTokenizer.from_text("".join(documents))
+    dataset = PackedTokenDataset(
+        documents, tokenizer, context_size=4
+    )
+
+    expected_stream = []
+    for document in documents:
+        expected_stream.extend(
+            tokenizer.encode(document, add_bos=True, add_eos=True)
+        )
+
+    assert dataset.document_count == 3
+    assert dataset.skipped_documents == 0
+    assert dataset.tokens == expected_stream
+    assert dataset.total_tokens == 30
+    assert len(dataset) == 8
+    assert dataset.dropped_tokens == 0
+
+    # The third window crosses the first document boundary. EOS and BOS
+    # remain explicit, so the model can identify the document transition.
+    inputs, targets = dataset[2]
+    assert inputs.tolist() == expected_stream[8:12]
+    assert targets.tolist() == expected_stream[9:13]
+    assert inputs.tolist()[:2] == [tokenizer.eos_id, tokenizer.bos_id]
+
+    for index in range(len(dataset)):
+        inputs, targets = dataset[index]
+        assert inputs.shape == (4,)
+        assert targets.shape == (4,)
+        assert torch.equal(inputs[1:], targets[:-1])
 
 
 def test_checkpoint_restores_model_and_optimizer(tmp_path):
