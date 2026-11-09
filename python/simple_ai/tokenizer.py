@@ -266,7 +266,7 @@ class BPETokenizer:
         return cls(payload.get("characters", []), payload.get("merges", []))
 
 
-def load_tokenizer(path: str | Path) -> CharTokenizer | BPETokenizer:
+def load_tokenizer(path: str | Path):
     """Load a supported tokenizer using its self-described file format."""
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     tokenizer_format = payload.get("format")
@@ -274,4 +274,7 @@ def load_tokenizer(path: str | Path) -> CharTokenizer | BPETokenizer:
         return CharTokenizer.load(path)
     if tokenizer_format == BPETokenizer.format_name:
         return BPETokenizer.load(path)
+    if tokenizer_format == "simple-ai-byte-bpe-tokenizer":
+        from .byte_bpe import ByteBPETokenizer
+        return ByteBPETokenizer.load(path)
     raise ValueError(f"Unsupported tokenizer format: {tokenizer_format!r}")
