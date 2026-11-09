@@ -86,7 +86,7 @@ After the smoke test succeeds, run the same command without --max-steps. Keep th
   --embedding-dim 256 \
   --num-heads 8 \
   --num-layers 6 \
-  --batch-size 16 \
+  --batch-size 8 \
   --epochs 8 \
   --warmup-steps 500 \
   --checkpoint-steps 500 \
@@ -97,7 +97,7 @@ If the GPU runs out of memory, lower --batch-size to 8 or 4. Do not change conte
 
 ## Resume after a Colab disconnect
 
-Run the same full-training command with the same settings and add:
+Run the same full-training command with the same settings and append this option to that command:
 
 ~~~bash
 --resume /content/drive/MyDrive/simple_ai_runs/indonesian_v2/checkpoint_latest.pt
