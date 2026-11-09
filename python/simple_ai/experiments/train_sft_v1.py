@@ -68,12 +68,11 @@ class InstructionDataset(Dataset):
                 ) + [tokenizer.eos_id]
 
                 # Preserve an EOS target and as much of the answer as possible.
-                if len(answer_ids) >= max_total:
-                    answer_ids = answer_ids[: max_total - 1] + [tokenizer.eos_id]
+                if len(answer_ids) > max_total - 1:
+                    answer_ids = answer_ids[: max_total - 2] + [tokenizer.eos_id]
                 prefix_budget = max_total - len(answer_ids)
                 if prefix_budget < 1:
-                    answer_ids = answer_ids[: max_total - 1]
-                    prefix_budget = 1
+                    raise RuntimeError("Unable to reserve prompt and answer tokens.")
                 prefix_ids = prefix_ids[-prefix_budget:]
 
                 token_ids = prefix_ids + answer_ids
