@@ -41,11 +41,11 @@ jobs:
       - name: Install CPU PyTorch and test tools
         run: |
           python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
-          python -m pip install pytest numpy
+          python -m pip install pytest numpy tokenizers
       - name: Run PyTorch backend tests
         env:
           PYTHONPATH: python
-        run: python -m pytest -q tests/test_torch_backend.py
+        run: python -m pytest -q tests/test_torch_backend.py tests/test_byte_bpe.py
 
   cpp-build:
     name: C++ native build
