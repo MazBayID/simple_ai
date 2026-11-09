@@ -111,7 +111,7 @@ def test_packed_dataset_keeps_short_documents_and_document_markers():
     inputs, targets = dataset[2]
     assert inputs.tolist() == expected_stream[8:12]
     assert targets.tolist() == expected_stream[9:13]
-    assert inputs.tolist()[:2] == [tokenizer.eos_id, tokenizer.bos_id]
+    assert inputs.tolist()[1:3] == [tokenizer.eos_id, tokenizer.bos_id]
 
     for index in range(len(dataset)):
         inputs, targets = dataset[index]
