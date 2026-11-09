@@ -101,6 +101,17 @@ def write_corpus(source: Path, output_dir: Path, minimum_training_characters: in
         path.write_text(value, encoding="utf-8")
         file_hashes[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
 
+    # Preserve article boundaries for document-aware language-model training.
+    for name, items in splits.items():
+        path = output_dir / f"{name}.jsonl"
+        with path.open("w", encoding="utf-8") as handle:
+            for item in items:
+                handle.write(json.dumps(
+                    {"title": item["title"], "text": item["text"]},
+                    ensure_ascii=False,
+                ) + "\\n")
+        file_hashes[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+
     provenance = [{
         "title": item["title"], "source_url": item["source_url"],
         "source_revision_id": item["source_revision_id"],
