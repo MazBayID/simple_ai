@@ -23,7 +23,16 @@ from google.colab import drive
 drive.mount("/content/drive")
 ~~~
 
-Clone the v2 branch and install the cloud dependencies:
+If /content/simple_ai already exists from the v1 work, do not clone it again. Switch that checkout to the v2 branch:
+
+~~~bash
+%cd /content/simple_ai
+!git fetch origin
+!git checkout -B feature/indonesian-v2 origin/feature/indonesian-v2
+!python -m pip install -e ".[cloud,dev]"
+~~~
+
+If the folder does not exist yet, clone the branch first:
 
 ~~~bash
 !git clone -b feature/indonesian-v2 https://github.com/MazBayID/simple_ai.git
