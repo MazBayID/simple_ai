@@ -163,20 +163,19 @@ class PackedTokenDataset(Dataset):
 
         self.tokens = token_stream
         self.total_tokens = len(token_stream)
-        if self.total_tokens > context_size:
-            self.total_windows = (
-                (self.total_tokens - context_size - 1) // stride
-            ) + 1
+        self.max_start = self.total_tokens - context_size - 1
+        if self.max_start >= 0:
+            regular_windows = self.max_start // stride + 1
+            last_regular_start = (regular_windows - 1) * stride
+            self.has_tail_window = last_regular_start < self.max_start
+            self.total_windows = regular_windows + int(self.has_tail_window)
         else:
+            self.has_tail_window = False
             self.total_windows = 0
 
-        if self.total_windows:
-            final_target_end = (
-                (self.total_windows - 1) * stride + context_size + 1
-            )
-            self.dropped_tokens = self.total_tokens - final_target_end
-        else:
-            self.dropped_tokens = self.total_tokens
+        # A final overlapping window ensures the stream's last token (normally
+        # EOS) is included as a next-token target instead of being discarded.
+        self.dropped_tokens = 0 if self.total_windows else self.total_tokens
 
     def __len__(self) -> int:
         return self.total_windows
@@ -187,7 +186,10 @@ class PackedTokenDataset(Dataset):
         if index < 0 or index >= self.total_windows:
             raise IndexError("PackedTokenDataset index out of range.")
 
-        start = index * self.stride
+        if self.has_tail_window and index == self.total_windows - 1:
+            start = self.max_start
+        else:
+            start = index * self.stride
         inputs = torch.tensor(
             self.tokens[start:start + self.context_size], dtype=torch.long
         )
